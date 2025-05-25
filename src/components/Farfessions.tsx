@@ -49,6 +49,7 @@ export default function Farfessions(
   const [txHash, setTxHash] = useState<string | null>(null);
   const [sendNotificationResult, setSendNotificationResult] = useState("");
   const [copied, setCopied] = useState(false);
+  const [farfession, setFarfession] = useState("");
 
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
@@ -208,6 +209,27 @@ export default function Farfessions(
     >
       <div className="w-[300px] mx-auto py-2 px-2">
         <h1 className="text-2xl font-bold text-center mb-4">{title}</h1>
+
+        <div className="mb-6">
+          <h2 className="text-xl font-bold mb-2">Farfession</h2>
+          <textarea
+            className="w-full p-2 border border-gray-300 rounded-md mb-2"
+            rows={4}
+            placeholder="What's your Farfession?"
+            value={farfession}
+            onChange={(e) => setFarfession(e.target.value)}
+          />
+          <Button
+            className="w-full"
+            onClick={() => {
+              console.log("Farfession submitted:", farfession);
+              // Add your submission logic here
+              setFarfession(""); // Clear the input after submission
+            }}
+          >
+            Submit
+          </Button>
+        </div>
 
         <div className="mb-4">
           <h2 className="font-2xl font-bold">Context</h2>
