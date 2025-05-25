@@ -53,12 +53,21 @@ export default function Farfessions(
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
   const hasSolanaProvider = useHasSolanaProvider();
+
+  // Initialize Solana wallet variables only if provider exists
   let solanaWallet, solanaPublicKey, solanaSignMessage, solanaAddress;
   if (hasSolanaProvider) {
-    solanaWallet = useSolanaWallet();
-    ({ publicKey: solanaPublicKey, signMessage: solanaSignMessage } =
-      solanaWallet);
-    solanaAddress = solanaPublicKey?.toBase58();
+    try {
+      solanaWallet = useSolanaWallet();
+      // Check if the wallet is actually connected before destructuring
+      if (solanaWallet && solanaWallet.publicKey && solanaWallet.signMessage) {
+        ({ publicKey: solanaPublicKey, signMessage: solanaSignMessage } =
+          solanaWallet);
+        solanaAddress = solanaPublicKey?.toBase58();
+      }
+    } catch (error) {
+      console.log("Solana wallet not ready yet:", error);
+    }
   }
 
   useEffect(() => {
@@ -390,9 +399,6 @@ export default function Farfessions(
           {isConnected && (
             <>
               <div className="mb-4">
-                <SendEth />
-              </div>
-              <div className="mb-4">
                 <Button
                   onClick={sendTx}
                   disabled={!isConnected || isSendTxPending}
@@ -415,43 +421,9 @@ export default function Farfessions(
                   </div>
                 )}
               </div>
-              <div className="mb-4">
-                <Button
-                  onClick={signTyped}
-                  disabled={!isConnected || isSignTypedPending}
-                  isLoading={isSignTypedPending}
-                >
-                  Sign Typed Data
-                </Button>
-                {isSignTypedError && renderError(signTypedError)}
-              </div>
-              <div className="mb-4">
-                <Button
-                  onClick={handleSwitchChain}
-                  disabled={isSwitchChainPending}
-                  isLoading={isSwitchChainPending}
-                >
-                  Switch to {nextChain.name}
-                </Button>
-                {isSwitchChainError && renderError(switchChainError)}
-              </div>
             </>
           )}
         </div>
-
-        {solanaAddress && (
-          <div>
-            <h2 className="font-2xl font-bold">Solana</h2>
-            <div className="my-2 text-xs">
-              Address:{" "}
-              <pre className="inline">{truncateAddress(solanaAddress)}</pre>
-            </div>
-            <SignSolanaMessage signMessage={solanaSignMessage} />
-            <div className="mb-4">
-              <SendSolana />
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -472,7 +444,9 @@ function SignSolanaMessage({
     setSignPending(true);
     try {
       if (!signMessage) {
-        throw new Error("no Solana signMessage");
+        throw new Error(
+          "No Solana signMessage function available. Please connect a Solana wallet."
+        );
       }
       const input = new TextEncoder().encode("Hello from Solana!");
       const signatureBytes = await signMessage(input);
@@ -482,6 +456,7 @@ function SignSolanaMessage({
     } catch (e) {
       if (e instanceof Error) {
         setSignError(e);
+        console.log("Solana sign message error:", e.message);
       }
     } finally {
       setSignPending(false);
@@ -492,7 +467,7 @@ function SignSolanaMessage({
     <>
       <Button
         onClick={handleSignMessage}
-        disabled={signPending}
+        disabled={signPending || !signMessage}
         isLoading={signPending}
         className="mb-4"
       >
@@ -528,12 +503,22 @@ function SendSolana() {
     setState({ status: "pending" });
     try {
       if (!publicKey) {
-        throw new Error("no Solana publicKey");
+        throw new Error(
+          "No Solana publicKey available. Please connect a Solana wallet."
+        );
+      }
+
+      if (!sendTransaction) {
+        throw new Error("No Solana sendTransaction function available.");
+      }
+
+      if (!solanaConnection) {
+        throw new Error("No Solana connection available.");
       }
 
       const { blockhash } = await solanaConnection.getLatestBlockhash();
       if (!blockhash) {
-        throw new Error("failed to fetch latest Solana blockhash");
+        throw new Error("Failed to fetch latest Solana blockhash");
       }
 
       const fromPubkeyStr = publicKey.toBase58();
@@ -562,6 +547,7 @@ function SendSolana() {
     } catch (e) {
       if (e instanceof Error) {
         setState({ status: "error", error: e });
+        console.log("Solana send transaction error:", e.message);
       } else {
         setState({ status: "none" });
       }
@@ -572,7 +558,7 @@ function SendSolana() {
     <>
       <Button
         onClick={handleSend}
-        disabled={state.status === "pending"}
+        disabled={state.status === "pending" || !publicKey || !sendTransaction}
         isLoading={state.status === "pending"}
         className="mb-4"
       >
