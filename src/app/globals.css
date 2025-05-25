@@ -3,14 +3,18 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #8A63D2;
+  --foreground: #ffffff;
+  --button-bg: #C0C0C0;
+  --button-text: #333333;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #8A63D2;
+    --foreground: #ffffff;
+    --button-bg: #C0C0C0;
+    --button-text: #333333;
   }
 }
 
@@ -33,4 +37,16 @@ body {
   :root {
     --radius: 0.5rem;
   }
+}
+
+/* Button styling */
+button, .button {
+  background-color: var(--button-bg) !important;
+  color: var(--button-text) !important;
+}
+
+/* Ensure text inputs have proper contrast */
+input, textarea {
+  color: #333333;
+  background-color: #ffffff;
 }

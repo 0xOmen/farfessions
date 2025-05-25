@@ -207,13 +207,13 @@ export default function Farfessions(
         paddingRight: context?.client.safeAreaInsets?.right ?? 0,
       }}
     >
-      <div className="w-[300px] mx-auto py-2 px-2">
+      <div className="w-[300px] mx-auto py-2 px-2 text-white">
         <h1 className="text-2xl font-bold text-center mb-4">{title}</h1>
 
         <div className="mb-6">
           <h2 className="text-xl font-bold mb-2">Farfession</h2>
           <textarea
-            className="w-full p-2 border border-gray-300 rounded-md mb-2"
+            className="w-full p-2 border border-gray-300 rounded-md mb-2 text-[#333333] bg-white"
             rows={4}
             placeholder="What's your Farfession?"
             value={farfession}
@@ -235,7 +235,7 @@ export default function Farfessions(
           <h2 className="font-2xl font-bold">Context</h2>
           <button
             onClick={toggleContext}
-            className="flex items-center gap-2 transition-colors"
+            className="flex items-center gap-2 transition-colors text-white"
           >
             <span
               className={`transform transition-transform ${
@@ -248,8 +248,8 @@ export default function Farfessions(
           </button>
 
           {isContextOpen && (
-            <div className="p-4 mt-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
+            <div className="p-4 mt-2 bg-[#7252B8] rounded-lg">
+              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x- text-white">
                 {JSON.stringify(context, null, 2)}
               </pre>
             </div>
@@ -260,8 +260,8 @@ export default function Farfessions(
           <h2 className="font-2xl font-bold">Actions</h2>
 
           <div className="mb-4">
-            <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg my-2">
-              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
+            <div className="p-2 bg-[#7252B8] rounded-lg my-2">
+              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x- text-white">
                 sdk.actions.signIn
               </pre>
             </div>
@@ -269,8 +269,8 @@ export default function Farfessions(
           </div>
 
           <div className="mb-4">
-            <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg my-2">
-              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
+            <div className="p-2 bg-[#7252B8] rounded-lg my-2">
+              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x- text-white">
                 sdk.actions.openUrl
               </pre>
             </div>
@@ -284,8 +284,8 @@ export default function Farfessions(
           </div>
 
           <div className="mb-4">
-            <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg my-2">
-              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
+            <div className="p-2 bg-[#7252B8] rounded-lg my-2">
+              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x- text-white">
                 sdk.actions.viewProfile
               </pre>
             </div>
@@ -293,8 +293,8 @@ export default function Farfessions(
           </div>
 
           <div className="mb-4">
-            <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg my-2">
-              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
+            <div className="p-2 bg-[#7252B8] rounded-lg my-2">
+              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x- text-white">
                 sdk.actions.close
               </pre>
             </div>
@@ -305,8 +305,8 @@ export default function Farfessions(
         <div className="mb-4">
           <h2 className="font-2xl font-bold">Last event</h2>
 
-          <div className="p-4 mt-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-            <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
+          <div className="p-4 mt-2 bg-[#7252B8] rounded-lg">
+            <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x- text-white">
               {lastEvent || "none"}
             </pre>
           </div>
@@ -324,8 +324,8 @@ export default function Farfessions(
           </div>
 
           <div className="mb-4">
-            <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg my-2">
-              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
+            <div className="p-2 bg-[#7252B8] rounded-lg my-2">
+              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x- text-white">
                 sdk.actions.addFrame
               </pre>
             </div>
@@ -754,22 +754,22 @@ function SignIn() {
         </Button>
       )}
       {session && (
-        <div className="my-2 p-2 text-xs overflow-x-scroll bg-gray-100 rounded-lg font-mono">
-          <div className="font-semibold text-gray-500 mb-1">Session</div>
+        <div className="my-2 p-2 text-xs overflow-x-scroll bg-[#7252B8] rounded-lg font-mono text-white">
+          <div className="font-semibold text-gray-300 mb-1">Session</div>
           <div className="whitespace-pre">
             {JSON.stringify(session, null, 2)}
           </div>
         </div>
       )}
       {signInFailure && !signingIn && (
-        <div className="my-2 p-2 text-xs overflow-x-scroll bg-gray-100 rounded-lg font-mono">
-          <div className="font-semibold text-gray-500 mb-1">SIWF Result</div>
+        <div className="my-2 p-2 text-xs overflow-x-scroll bg-[#7252B8] rounded-lg font-mono text-white">
+          <div className="font-semibold text-gray-300 mb-1">SIWF Result</div>
           <div className="whitespace-pre">{signInFailure}</div>
         </div>
       )}
       {signInResult && !signingIn && (
-        <div className="my-2 p-2 text-xs overflow-x-scroll bg-gray-100 rounded-lg font-mono">
-          <div className="font-semibold text-gray-500 mb-1">SIWF Result</div>
+        <div className="my-2 p-2 text-xs overflow-x-scroll bg-[#7252B8] rounded-lg font-mono text-white">
+          <div className="font-semibold text-gray-300 mb-1">SIWF Result</div>
           <div className="whitespace-pre">
             {JSON.stringify(signInResult, null, 2)}
           </div>
@@ -786,7 +786,7 @@ function ViewProfile() {
     <>
       <div>
         <Label
-          className="text-xs font-semibold text-gray-500 mb-1"
+          className="text-xs font-semibold text-white mb-1"
           htmlFor="view-profile-fid"
         >
           Fid
@@ -795,7 +795,7 @@ function ViewProfile() {
           id="view-profile-fid"
           type="number"
           value={fid}
-          className="mb-2"
+          className="mb-2 text-[#333333] bg-white"
           onChange={(e) => {
             setFid(e.target.value);
           }}
@@ -822,9 +822,9 @@ const renderError = (error: Error | null) => {
     );
 
     if (isUserRejection) {
-      return <div className="text-red-500 text-xs mt-1">Rejected by user.</div>;
+      return <div className="text-red-300 text-xs mt-1">Rejected by user.</div>;
     }
   }
 
-  return <div className="text-red-500 text-xs mt-1">{error.message}</div>;
+  return <div className="text-red-300 text-xs mt-1">{error.message}</div>;
 };
