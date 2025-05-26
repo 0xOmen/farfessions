@@ -251,7 +251,7 @@ export default function Farfessions(
         <h1 className="text-2xl font-bold text-center mb-4">{title}</h1>
 
         <div className="mb-6">
-          <h2 className="text-xl font-bold mb-2">Farfession</h2>
+          <h2 className="text-xl font-bold mb-2">Farfessions</h2>
           <textarea
             className="w-full p-2 border border-gray-300 rounded-md mb-2 text-[#333333] bg-white"
             rows={4}
@@ -268,42 +268,6 @@ export default function Farfessions(
               isLoading={isSubmitting}
             >
               Submit
-            </Button>
-            <Button
-              className="px-4"
-              onClick={async () => {
-                console.log("=== Environment Variables Test ===");
-                console.log(
-                  "NEXT_PUBLIC_SUPABASE_URL:",
-                  process.env.NEXT_PUBLIC_SUPABASE_URL || "MISSING"
-                );
-                console.log(
-                  "NEXT_PUBLIC_SUPABASE_ANON_KEY:",
-                  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? "SET" : "MISSING"
-                );
-
-                // Test Supabase connection
-                console.log("=== Testing Supabase Connection ===");
-                try {
-                  const { supabase } = await import("~/lib/supabase");
-                  const { data, error } = await supabase
-                    .from("farfessions")
-                    .select("count")
-                    .limit(1);
-                  console.log("Connection test result:", { data, error });
-                  if (error) {
-                    console.error("Connection failed:", error);
-                  } else {
-                    console.log("Connection successful!");
-                  }
-                } catch (err) {
-                  console.error("Connection test error:", err);
-                }
-
-                console.log("Check console for detailed results");
-              }}
-            >
-              Test
             </Button>
           </div>
         </div>
