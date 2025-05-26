@@ -63,6 +63,9 @@ export default function FarfessionFeed() {
       return;
     }
 
+    const ADMIN_FID = 212074;
+    const isAdmin = userFid === ADMIN_FID;
+
     try {
       const response = await fetch(`/api/farfessions/${id}`, {
         method: "POST",
@@ -75,12 +78,17 @@ export default function FarfessionFeed() {
       const result = await response.json();
 
       if (!response.ok) {
-        if (response.status === 409) {
-          // Duplicate vote error
+        if (response.status === 409 && !isAdmin) {
+          // Duplicate vote error for non-admin users
           alert(result.error);
           return;
         }
         throw new Error(result.error || "Failed to vote");
+      }
+
+      // Show success message for admin multiple votes
+      if (result.data?.isAdmin) {
+        console.log(`Admin vote recorded: ${action}`);
       }
 
       // Refresh the farfessions to get updated counts and vote status
@@ -123,35 +131,46 @@ export default function FarfessionFeed() {
   return (
     <div className="space-y-4 mt-4">
       <h2 className="text-xl font-bold">Recent Farfessions</h2>
-      {farfessions.map((farfession) => (
-        <div key={farfession.id} className="p-4 bg-[#7252B8] rounded-lg shadow">
-          <p className="mb-3">{farfession.text}</p>
-          <div className="flex gap-4">
-            <button
-              onClick={() => handleLike(farfession.id)}
-              className={`flex items-center gap-1 text-sm hover:text-white px-2 py-1 rounded ${
-                farfession.user_vote === "like"
-                  ? "bg-green-600 text-white"
-                  : "bg-[#7252B8]"
-              }`}
-              disabled={farfession.user_vote === "like"}
-            >
-              👍 {farfession.likes}
-            </button>
-            <button
-              onClick={() => handleDislike(farfession.id)}
-              className={`flex items-center gap-1 text-sm hover:text-white px-2 py-1 rounded ${
-                farfession.user_vote === "dislike"
-                  ? "bg-red-600 text-white"
-                  : "bg-[#7252B8]"
-              }`}
-              disabled={farfession.user_vote === "dislike"}
-            >
-              👎 {farfession.dislikes}
-            </button>
+      {farfessions.map((farfession) => {
+        const userFid = context?.user?.fid;
+        const ADMIN_FID = 212074;
+        const isAdmin = userFid === ADMIN_FID;
+
+        return (
+          <div
+            key={farfession.id}
+            className="p-4 bg-[#7252B8] rounded-lg shadow"
+          >
+            <p className="mb-3">{farfession.text}</p>
+            <div className="flex gap-4">
+              <button
+                onClick={() => handleLike(farfession.id)}
+                className={`flex items-center gap-1 text-sm hover:text-white px-2 py-1 rounded ${
+                  farfession.user_vote === "like" && !isAdmin
+                    ? "bg-green-600 text-white"
+                    : "bg-[#7252B8]"
+                }`}
+                disabled={farfession.user_vote === "like" && !isAdmin}
+              >
+                👍 {farfession.likes}
+                {isAdmin && <span className="text-xs ml-1">(Admin)</span>}
+              </button>
+              <button
+                onClick={() => handleDislike(farfession.id)}
+                className={`flex items-center gap-1 text-sm hover:text-white px-2 py-1 rounded ${
+                  farfession.user_vote === "dislike" && !isAdmin
+                    ? "bg-red-600 text-white"
+                    : "bg-[#7252B8]"
+                }`}
+                disabled={farfession.user_vote === "dislike" && !isAdmin}
+              >
+                👎 {farfession.dislikes}
+                {isAdmin && <span className="text-xs ml-1">(Admin)</span>}
+              </button>
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

@@ -178,42 +178,12 @@ export async function voteOnFarfession(farfessionId: number, userFid: number, vo
     throw new Error('Supabase is not configured. Please check your environment variables.');
   }
 
+  const ADMIN_FID = 212074; // Your admin FID
+  const isAdmin = userFid === ADMIN_FID;
+
   try {
-    // Check if user has already voted on this farfession
-    const { data: existingVote, error: checkError } = await supabase
-      .from('votes')
-      .select('*')
-      .eq('farfession_id', farfessionId)
-      .eq('user_fid', userFid)
-      .single();
-
-    if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
-      console.error('Error checking existing vote:', checkError);
-      throw new Error(`Error checking existing vote: ${checkError.message}`);
-    }
-
-    if (existingVote) {
-      // User has already voted
-      if (existingVote.vote_type === voteType) {
-        throw new Error(`You have already ${voteType}d this farfession`);
-      } else {
-        // User wants to change their vote
-        const { error: updateError } = await supabase
-          .from('votes')
-          .update({ vote_type: voteType })
-          .eq('id', existingVote.id);
-
-        if (updateError) {
-          console.error('Error updating vote:', updateError);
-          throw new Error(`Error updating vote: ${updateError.message}`);
-        }
-
-        // Update the farfession counts
-        await updateFarfessionCounts(farfessionId);
-        return { action: 'updated', previousVote: existingVote.vote_type, newVote: voteType };
-      }
-    } else {
-      // User hasn't voted yet, create new vote
+    if (isAdmin) {
+      // Admin can vote multiple times - just insert a new vote
       const { error: insertError } = await supabase
         .from('votes')
         .insert([{
@@ -223,13 +193,66 @@ export async function voteOnFarfession(farfessionId: number, userFid: number, vo
         }]);
 
       if (insertError) {
-        console.error('Error inserting vote:', insertError);
+        console.error('Error inserting admin vote:', insertError);
         throw new Error(`Error inserting vote: ${insertError.message}`);
       }
 
       // Update the farfession counts
       await updateFarfessionCounts(farfessionId);
-      return { action: 'created', newVote: voteType };
+      return { action: 'created', newVote: voteType, isAdmin: true };
+    } else {
+      // Regular users - check for existing vote first
+      const { data: existingVote, error: checkError } = await supabase
+        .from('votes')
+        .select('*')
+        .eq('farfession_id', farfessionId)
+        .eq('user_fid', userFid)
+        .single();
+
+      if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
+        console.error('Error checking existing vote:', checkError);
+        throw new Error(`Error checking existing vote: ${checkError.message}`);
+      }
+
+      if (existingVote) {
+        // User has already voted
+        if (existingVote.vote_type === voteType) {
+          throw new Error(`You have already ${voteType}d this farfession`);
+        } else {
+          // User wants to change their vote
+          const { error: updateError } = await supabase
+            .from('votes')
+            .update({ vote_type: voteType })
+            .eq('id', existingVote.id);
+
+          if (updateError) {
+            console.error('Error updating vote:', updateError);
+            throw new Error(`Error updating vote: ${updateError.message}`);
+          }
+
+          // Update the farfession counts
+          await updateFarfessionCounts(farfessionId);
+          return { action: 'updated', previousVote: existingVote.vote_type, newVote: voteType };
+        }
+      } else {
+        // User hasn't voted yet, create new vote
+        const { error: insertError } = await supabase
+          .from('votes')
+          .insert([{
+            farfession_id: farfessionId,
+            user_fid: userFid,
+            vote_type: voteType
+          }]);
+
+        if (insertError) {
+          console.error('Error inserting vote:', insertError);
+          throw new Error(`Error inserting vote: ${insertError.message}`);
+        }
+
+        // Update the farfession counts
+        await updateFarfessionCounts(farfessionId);
+        return { action: 'created', newVote: voteType };
+      }
     }
   } catch (error) {
     console.error('Vote farfession error:', error);
