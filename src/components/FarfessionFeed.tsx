@@ -23,8 +23,20 @@ export default function FarfessionFeed() {
       }
 
       const data = await response.json();
+
+      // Filter to only show submissions from the last 24 hours
+      const twentyFourHoursAgo = new Date();
+      twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+
+      const recentFarfessions = data.farfessions.filter(
+        (farfession: Farfession) => {
+          const submissionDate = new Date(farfession.created_at);
+          return submissionDate >= twentyFourHoursAgo;
+        }
+      );
+
       // Sort by likes in descending order (most likes first)
-      const sortedFarfessions = data.farfessions.sort(
+      const sortedFarfessions = recentFarfessions.sort(
         (a: Farfession, b: Farfession) => b.likes - a.likes
       );
       setFarfessions(sortedFarfessions);
