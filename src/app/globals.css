@@ -5,16 +5,16 @@
 :root {
   --background: #8A63D2;
   --foreground: #ffffff;
-  --button-bg: #C0C0C0;
-  --button-text: #333333;
+  --button-bg: #000000;
+  --button-text: #ffffff;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #8A63D2;
     --foreground: #ffffff;
-    --button-bg: #C0C0C0;
-    --button-text: #333333;
+    --button-bg: #000000;
+    --button-text: #ffffff;
   }
 }
 

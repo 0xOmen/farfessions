@@ -30,6 +30,8 @@ import { useSession } from "next-auth/react";
 import { Label } from "~/components/ui/label";
 import { useFrame } from "~/components/providers/FrameProvider";
 import { PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
+import { submitFarfession } from "~/lib/supabase";
+import FarfessionFeed from "./FarfessionFeed";
 
 export default function Farfessions(
   { title }: { title?: string } = { title: "Frames v2 Demo" }
@@ -50,6 +52,7 @@ export default function Farfessions(
   const [sendNotificationResult, setSendNotificationResult] = useState("");
   const [copied, setCopied] = useState(false);
   const [farfession, setFarfession] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
@@ -194,6 +197,43 @@ export default function Farfessions(
     setIsContextOpen((prev) => !prev);
   }, []);
 
+  const handleSubmitFarfession = async () => {
+    if (!farfession.trim()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // Get FID from context if available, otherwise use undefined
+      const userFid = context?.user?.fid;
+
+      await submitFarfession(farfession, userFid);
+      setFarfession(""); // Clear the input after submission
+      alert("Your Farfession has been submitted!"); // Using alert since toast might not be installed
+    } catch (error) {
+      console.error("Error submitting farfession:", error);
+
+      // Provide more specific error messages
+      if (error instanceof Error) {
+        if (error.message.includes("Supabase is not configured")) {
+          alert(
+            "Database not configured. Please check your environment variables in .env.local file."
+          );
+        } else if (error.message.includes("Database error")) {
+          alert(`Database error: ${error.message}`);
+        } else {
+          alert(`Error: ${error.message}`);
+        }
+      } else {
+        alert(
+          "Failed to submit your Farfession. Please check the console for details."
+        );
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   if (!isSDKLoaded) {
     return <div>Loading...</div>;
   }
@@ -218,18 +258,57 @@ export default function Farfessions(
             placeholder="What's your Farfession?"
             value={farfession}
             onChange={(e) => setFarfession(e.target.value)}
+            disabled={isSubmitting}
           />
-          <Button
-            className="w-full"
-            onClick={() => {
-              console.log("Farfession submitted:", farfession);
-              // Add your submission logic here
-              setFarfession(""); // Clear the input after submission
-            }}
-          >
-            Submit
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              className="flex-1"
+              onClick={handleSubmitFarfession}
+              disabled={isSubmitting || !farfession.trim()}
+              isLoading={isSubmitting}
+            >
+              Submit
+            </Button>
+            <Button
+              className="px-4"
+              onClick={async () => {
+                console.log("=== Environment Variables Test ===");
+                console.log(
+                  "NEXT_PUBLIC_SUPABASE_URL:",
+                  process.env.NEXT_PUBLIC_SUPABASE_URL || "MISSING"
+                );
+                console.log(
+                  "NEXT_PUBLIC_SUPABASE_ANON_KEY:",
+                  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? "SET" : "MISSING"
+                );
+
+                // Test Supabase connection
+                console.log("=== Testing Supabase Connection ===");
+                try {
+                  const { supabase } = await import("~/lib/supabase");
+                  const { data, error } = await supabase
+                    .from("farfessions")
+                    .select("count")
+                    .limit(1);
+                  console.log("Connection test result:", { data, error });
+                  if (error) {
+                    console.error("Connection failed:", error);
+                  } else {
+                    console.log("Connection successful!");
+                  }
+                } catch (err) {
+                  console.error("Connection test error:", err);
+                }
+
+                console.log("Check console for detailed results");
+              }}
+            >
+              Test
+            </Button>
+          </div>
         </div>
+
+        {/*<FarfessionFeed />*/}
 
         <div className="mb-4">
           <h2 className="font-2xl font-bold">Context</h2>
