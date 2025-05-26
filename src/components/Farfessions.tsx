@@ -30,7 +30,7 @@ import { useSession } from "next-auth/react";
 import { Label } from "~/components/ui/label";
 import { useFrame } from "~/components/providers/FrameProvider";
 import { PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
-import { submitFarfession } from "~/lib/supabase";
+import { submitFarfession, canUserSubmitToday } from "~/lib/supabase";
 import FarfessionFeed from "./FarfessionFeed";
 
 export default function Farfessions(
@@ -53,6 +53,8 @@ export default function Farfessions(
   const [copied, setCopied] = useState(false);
   const [farfession, setFarfession] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [canSubmitToday, setCanSubmitToday] = useState<boolean | null>(null);
+  const [checkingSubmissionLimit, setCheckingSubmissionLimit] = useState(false);
 
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
@@ -197,6 +199,29 @@ export default function Farfessions(
     setIsContextOpen((prev) => !prev);
   }, []);
 
+  // Check daily submission limit when user FID changes
+  useEffect(() => {
+    const checkDailyLimit = async () => {
+      const userFid = context?.user?.fid;
+      if (userFid) {
+        setCheckingSubmissionLimit(true);
+        try {
+          const canSubmit = await canUserSubmitToday(userFid);
+          setCanSubmitToday(canSubmit);
+        } catch (error) {
+          console.error("Error checking daily submission limit:", error);
+          setCanSubmitToday(true); // Default to allowing submission if check fails
+        } finally {
+          setCheckingSubmissionLimit(false);
+        }
+      } else {
+        setCanSubmitToday(true); // Allow anonymous submissions
+      }
+    };
+
+    checkDailyLimit();
+  }, [context?.user?.fid]);
+
   const handleSubmitFarfession = async () => {
     if (!farfession.trim()) {
       return;
@@ -209,13 +234,27 @@ export default function Farfessions(
 
       await submitFarfession(farfession, userFid);
       setFarfession(""); // Clear the input after submission
+
+      // Update daily submission status
+      if (userFid) {
+        const ADMIN_FID = 212074;
+        if (userFid !== ADMIN_FID) {
+          setCanSubmitToday(false); // Regular users can't submit again today
+        }
+      }
+
       alert("Your Farfession has been submitted!"); // Using alert since toast might not be installed
     } catch (error) {
       console.error("Error submitting farfession:", error);
 
       // Provide more specific error messages
       if (error instanceof Error) {
-        if (error.message.includes("Supabase is not configured")) {
+        if (error.message.includes("already submitted a farfession today")) {
+          alert(
+            "You have already submitted a farfession today. Please wait until tomorrow to submit another one."
+          );
+          setCanSubmitToday(false);
+        } else if (error.message.includes("Supabase is not configured")) {
           alert(
             "Database not configured. Please check your environment variables in .env.local file."
           );
@@ -252,6 +291,35 @@ export default function Farfessions(
 
         <div className="mb-6">
           <h2 className="text-xl font-bold mb-2">Farfessions</h2>
+
+          {/* Daily submission status */}
+          {context?.user?.fid && (
+            <div className="mb-2 text-xs">
+              {checkingSubmissionLimit ? (
+                <span className="text-gray-300">
+                  Checking submission limit...
+                </span>
+              ) : canSubmitToday === false ? (
+                <span className="text-yellow-400">
+                  ⚠️ You have already submitted today. Next submission available
+                  tomorrow.
+                  {context.user.fid === 212074 && (
+                    <span className="text-green-400 ml-1">
+                      (Admin: unlimited submissions)
+                    </span>
+                  )}
+                </span>
+              ) : (
+                <span className="text-green-400">
+                  ✅ You can submit a farfession today
+                  {context.user.fid === 212074 && (
+                    <span className="ml-1">(Admin: unlimited submissions)</span>
+                  )}
+                </span>
+              )}
+            </div>
+          )}
+
           <textarea
             className="w-full p-2 border border-gray-300 rounded-md mb-2 text-[#333333] bg-white"
             rows={4}
@@ -263,7 +331,7 @@ export default function Farfessions(
                 setFarfession(value);
               }
             }}
-            disabled={isSubmitting}
+            disabled={isSubmitting || checkingSubmissionLimit}
             maxLength={1000}
           />
           <div className="flex justify-between items-center mb-2">
@@ -284,11 +352,15 @@ export default function Farfessions(
               className="flex-1"
               onClick={handleSubmitFarfession}
               disabled={
-                isSubmitting || !farfession.trim() || farfession.length > 1000
+                isSubmitting ||
+                checkingSubmissionLimit ||
+                !farfession.trim() ||
+                farfession.length > 1000 ||
+                (canSubmitToday === false && context?.user?.fid !== 212074)
               }
               isLoading={isSubmitting}
             >
-              Submit
+              {checkingSubmissionLimit ? "Checking..." : "Submit"}
             </Button>
           </div>
         </div>

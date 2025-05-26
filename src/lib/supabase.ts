@@ -69,6 +69,39 @@ export async function testSupabaseConnection() {
   }
 }
 
+// Function to check if user can submit today (for client-side validation)
+export async function canUserSubmitToday(userFid: number): Promise<boolean> {
+  const ADMIN_FID = 212074;
+  
+  // Admin can always submit
+  if (userFid === ADMIN_FID) {
+    return true;
+  }
+
+  try {
+    // Check if user has submitted today
+    const today = new Date().toISOString().split('T')[0]; // Get YYYY-MM-DD format
+    
+    const { data, error } = await supabase
+      .from('farfessions')
+      .select('id')
+      .eq('user_fid', userFid)
+      .gte('created_at', `${today}T00:00:00.000Z`)
+      .lt('created_at', `${today}T23:59:59.999Z`);
+
+    if (error) {
+      console.error('Error checking daily submission limit:', error);
+      throw new Error(`Error checking submission limit: ${error.message}`);
+    }
+
+    // Return true if no submissions today (can submit), false if already submitted
+    return data.length === 0;
+  } catch (error) {
+    console.error('Error in canUserSubmitToday:', error);
+    throw error;
+  }
+}
+
 // Function to submit a new farfession
 export async function submitFarfession(text: string, userFid?: number) {
   console.log('=== Submitting Farfession ===');
