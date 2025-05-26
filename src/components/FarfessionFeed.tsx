@@ -23,7 +23,11 @@ export default function FarfessionFeed() {
       }
 
       const data = await response.json();
-      setFarfessions(data.farfessions);
+      // Sort by likes in descending order (most likes first)
+      const sortedFarfessions = data.farfessions.sort(
+        (a: Farfession, b: Farfession) => b.likes - a.likes
+      );
+      setFarfessions(sortedFarfessions);
     } catch (err) {
       console.error("Error fetching farfessions:", err);
       setError("Failed to load farfessions. Please try again later.");
