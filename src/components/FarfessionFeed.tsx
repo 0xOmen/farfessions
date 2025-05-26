@@ -84,11 +84,6 @@ export default function FarfessionFeed() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString();
-  };
-
   if (loading) {
     return <div className="text-center py-4">Loading farfessions...</div>;
   }
@@ -120,25 +115,17 @@ export default function FarfessionFeed() {
       <h2 className="text-xl font-bold">Recent Farfessions</h2>
       {farfessions.map((farfession) => (
         <div key={farfession.id} className="p-4 bg-[#7252B8] rounded-lg shadow">
-          <p className="mb-2">{farfession.text}</p>
-          <div className="flex justify-between items-center text-sm text-gray-300">
-            <span>
-              {farfession.user_fid
-                ? `FID: ${farfession.user_fid}`
-                : "Anonymous"}
-            </span>
-            <span>{formatDate(farfession.created_at)}</span>
-          </div>
-          <div className="flex gap-4 mt-2">
+          <p className="mb-3">{farfession.text}</p>
+          <div className="flex gap-4">
             <button
               onClick={() => handleLike(farfession.id)}
-              className="flex items-center gap-1 text-sm hover:text-white"
+              className="flex items-center gap-1 text-sm hover:text-white bg-[#7252B8] px-2 py-1 rounded"
             >
               👍 {farfession.likes}
             </button>
             <button
               onClick={() => handleDislike(farfession.id)}
-              className="flex items-center gap-1 text-sm hover:text-white"
+              className="flex items-center gap-1 text-sm hover:text-white bg-[#7252B8] px-2 py-1 rounded"
             >
               👎 {farfession.dislikes}
             </button>

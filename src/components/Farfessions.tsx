@@ -255,7 +255,7 @@ export default function Farfessions(
           <textarea
             className="w-full p-2 border border-gray-300 rounded-md mb-2 text-[#333333] bg-white"
             rows={4}
-            placeholder="What's your Farfession?"
+            placeholder="What is your secret Farfession?"
             value={farfession}
             onChange={(e) => setFarfession(e.target.value)}
             disabled={isSubmitting}
@@ -308,7 +308,7 @@ export default function Farfessions(
           </div>
         </div>
 
-        {/*<FarfessionFeed />*/}
+        <FarfessionFeed />
 
         <div className="mb-4">
           <h2 className="font-2xl font-bold">Context</h2>
