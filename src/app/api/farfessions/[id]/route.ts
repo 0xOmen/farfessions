@@ -14,13 +14,20 @@ export async function POST(
       );
     }
 
-    const { action } = await request.json();
+    const { action, userFid } = await request.json();
+    
+    if (!userFid) {
+      return NextResponse.json(
+        { error: 'User FID is required to vote' },
+        { status: 400 }
+      );
+    }
     
     if (action === 'like') {
-      const result = await likeFarfession(id);
+      const result = await likeFarfession(id, userFid);
       return NextResponse.json({ success: true, data: result });
     } else if (action === 'dislike') {
-      const result = await dislikeFarfession(id);
+      const result = await dislikeFarfession(id, userFid);
       return NextResponse.json({ success: true, data: result });
     } else {
       return NextResponse.json(
@@ -30,6 +37,17 @@ export async function POST(
     }
   } catch (error) {
     console.error(`Error processing action for farfession ${params.id}:`, error);
+    
+    // Handle specific voting errors
+    if (error instanceof Error) {
+      if (error.message.includes('already')) {
+        return NextResponse.json(
+          { error: error.message },
+          { status: 409 } // Conflict status for duplicate votes
+        );
+      }
+    }
+    
     return NextResponse.json(
       { error: 'Failed to process action' },
       { status: 500 }

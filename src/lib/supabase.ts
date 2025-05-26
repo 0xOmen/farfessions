@@ -41,6 +41,18 @@ export type Farfession = {
   dislikes: number;
 };
 
+export type Vote = {
+  id: number;
+  farfession_id: number;
+  user_fid: number;
+  vote_type: 'like' | 'dislike';
+  created_at: string;
+};
+
+export type FarfessionWithUserVote = Farfession & {
+  user_vote?: 'like' | 'dislike' | null;
+};
+
 // Function to test Supabase connection
 export async function testSupabaseConnection() {
   try {
@@ -116,56 +128,168 @@ export async function getFarfessions() {
   return data as Farfession[];
 }
 
-// Function to like a farfession
-export async function likeFarfession(id: number) {
-  const { data, error } = await supabase
+// Function to get farfessions with user vote status
+export async function getFarfessionsWithUserVotes(userFid?: number) {
+  const { data: farfessions, error: farfessionsError } = await supabase
     .from('farfessions')
-    .select('likes')
-    .eq('id', id)
-    .single();
+    .select('*')
+    .order('created_at', { ascending: false });
 
-  if (error) {
-    console.error('Error fetching current likes:', error);
+  if (farfessionsError) {
+    console.error('Error fetching farfessions:', farfessionsError);
+    throw farfessionsError;
+  }
+
+  if (!userFid) {
+    return farfessions.map(f => ({ ...f, user_vote: null })) as FarfessionWithUserVote[];
+  }
+
+  // Get user's votes for these farfessions
+  const farfessionIds = farfessions.map(f => f.id);
+  const { data: votes, error: votesError } = await supabase
+    .from('votes')
+    .select('farfession_id, vote_type')
+    .eq('user_fid', userFid)
+    .in('farfession_id', farfessionIds);
+
+  if (votesError) {
+    console.error('Error fetching user votes:', votesError);
+    throw votesError;
+  }
+
+  // Create a map of farfession_id to vote_type
+  const voteMap = new Map(votes.map(v => [v.farfession_id, v.vote_type]));
+
+  // Combine farfessions with user vote status
+  return farfessions.map(f => ({
+    ...f,
+    user_vote: voteMap.get(f.id) || null
+  })) as FarfessionWithUserVote[];
+}
+
+// Function to vote on a farfession (like or dislike)
+export async function voteOnFarfession(farfessionId: number, userFid: number, voteType: 'like' | 'dislike') {
+  console.log('=== Voting on Farfession ===');
+  console.log('Farfession ID:', farfessionId);
+  console.log('User FID:', userFid);
+  console.log('Vote Type:', voteType);
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Supabase is not configured. Please check your environment variables.');
+  }
+
+  try {
+    // Check if user has already voted on this farfession
+    const { data: existingVote, error: checkError } = await supabase
+      .from('votes')
+      .select('*')
+      .eq('farfession_id', farfessionId)
+      .eq('user_fid', userFid)
+      .single();
+
+    if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
+      console.error('Error checking existing vote:', checkError);
+      throw new Error(`Error checking existing vote: ${checkError.message}`);
+    }
+
+    if (existingVote) {
+      // User has already voted
+      if (existingVote.vote_type === voteType) {
+        throw new Error(`You have already ${voteType}d this farfession`);
+      } else {
+        // User wants to change their vote
+        const { error: updateError } = await supabase
+          .from('votes')
+          .update({ vote_type: voteType })
+          .eq('id', existingVote.id);
+
+        if (updateError) {
+          console.error('Error updating vote:', updateError);
+          throw new Error(`Error updating vote: ${updateError.message}`);
+        }
+
+        // Update the farfession counts
+        await updateFarfessionCounts(farfessionId);
+        return { action: 'updated', previousVote: existingVote.vote_type, newVote: voteType };
+      }
+    } else {
+      // User hasn't voted yet, create new vote
+      const { error: insertError } = await supabase
+        .from('votes')
+        .insert([{
+          farfession_id: farfessionId,
+          user_fid: userFid,
+          vote_type: voteType
+        }]);
+
+      if (insertError) {
+        console.error('Error inserting vote:', insertError);
+        throw new Error(`Error inserting vote: ${insertError.message}`);
+      }
+
+      // Update the farfession counts
+      await updateFarfessionCounts(farfessionId);
+      return { action: 'created', newVote: voteType };
+    }
+  } catch (error) {
+    console.error('Vote farfession error:', error);
     throw error;
   }
+}
 
-  const { data: updateData, error: updateError } = await supabase
-    .from('farfessions')
-    .update({ likes: data.likes + 1 })
-    .eq('id', id)
-    .select();
+// Function to update farfession like/dislike counts based on votes
+async function updateFarfessionCounts(farfessionId: number) {
+  // Count likes and dislikes from votes table
+  const { data: likesData, error: likesError } = await supabase
+    .from('votes')
+    .select('id')
+    .eq('farfession_id', farfessionId)
+    .eq('vote_type', 'like');
 
-  if (updateError) {
-    console.error('Error updating likes:', updateError);
-    throw updateError;
+  const { data: dislikesData, error: dislikesError } = await supabase
+    .from('votes')
+    .select('id')
+    .eq('farfession_id', farfessionId)
+    .eq('vote_type', 'dislike');
+
+  if (likesError || dislikesError) {
+    console.error('Error counting votes:', { likesError, dislikesError });
+    throw new Error('Error counting votes');
   }
 
-  return updateData;
+  const likesCount = likesData?.length || 0;
+  const dislikesCount = dislikesData?.length || 0;
+
+  // Update the farfession with new counts
+  const { error: updateError } = await supabase
+    .from('farfessions')
+    .update({
+      likes: likesCount,
+      dislikes: dislikesCount
+    })
+    .eq('id', farfessionId);
+
+  if (updateError) {
+    console.error('Error updating farfession counts:', updateError);
+    throw new Error(`Error updating farfession counts: ${updateError.message}`);
+  }
+
+  console.log(`Updated farfession ${farfessionId}: ${likesCount} likes, ${dislikesCount} dislikes`);
+}
+
+// Legacy functions - keeping for backward compatibility but updating to use new voting system
+// Function to like a farfession
+export async function likeFarfession(id: number, userFid?: number) {
+  if (!userFid) {
+    throw new Error('User FID is required to vote');
+  }
+  return voteOnFarfession(id, userFid, 'like');
 }
 
 // Function to dislike a farfession
-export async function dislikeFarfession(id: number) {
-  const { data, error } = await supabase
-    .from('farfessions')
-    .select('dislikes')
-    .eq('id', id)
-    .single();
-
-  if (error) {
-    console.error('Error fetching current dislikes:', error);
-    throw error;
+export async function dislikeFarfession(id: number, userFid?: number) {
+  if (!userFid) {
+    throw new Error('User FID is required to vote');
   }
-
-  const { data: updateData, error: updateError } = await supabase
-    .from('farfessions')
-    .update({ dislikes: data.dislikes + 1 })
-    .eq('id', id)
-    .select();
-
-  if (updateError) {
-    console.error('Error updating dislikes:', updateError);
-    throw updateError;
-  }
-
-  return updateData;
-} 
+  return voteOnFarfession(id, userFid, 'dislike');
+}

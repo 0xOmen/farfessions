@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase, submitFarfession, getFarfessions } from '~/lib/supabase';
+import { supabase, submitFarfession, getFarfessions, getFarfessionsWithUserVotes } from '~/lib/supabase';
 
 export async function GET(request: NextRequest) {
   try {
-    const farfessions = await getFarfessions();
-    return NextResponse.json({ farfessions });
+    const { searchParams } = new URL(request.url);
+    const userFid = searchParams.get('userFid');
+    
+    if (userFid) {
+      const farfessions = await getFarfessionsWithUserVotes(parseInt(userFid));
+      return NextResponse.json({ farfessions });
+    } else {
+      const farfessions = await getFarfessions();
+      return NextResponse.json({ farfessions });
+    }
   } catch (error) {
     console.error('Error fetching farfessions:', error);
     return NextResponse.json(
