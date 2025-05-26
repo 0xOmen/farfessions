@@ -257,14 +257,35 @@ export default function Farfessions(
             rows={4}
             placeholder="What is your secret Farfession?"
             value={farfession}
-            onChange={(e) => setFarfession(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value.length <= 1000) {
+                setFarfession(value);
+              }
+            }}
             disabled={isSubmitting}
+            maxLength={1000}
           />
+          <div className="flex justify-between items-center mb-2">
+            <div
+              className={`text-xs ${
+                farfession.length > 900
+                  ? farfession.length >= 1000
+                    ? "text-red-400"
+                    : "text-yellow-400"
+                  : "text-gray-300"
+              }`}
+            >
+              {farfession.length}/1000 characters
+            </div>
+          </div>
           <div className="flex gap-2">
             <Button
               className="flex-1"
               onClick={handleSubmitFarfession}
-              disabled={isSubmitting || !farfession.trim()}
+              disabled={
+                isSubmitting || !farfession.trim() || farfession.length > 1000
+              }
               isLoading={isSubmitting}
             >
               Submit
