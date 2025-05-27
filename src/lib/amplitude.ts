@@ -3,7 +3,7 @@ import { APP_URL } from "./constants";
 // Amplitude tracking -- only runs if configured via the CLI or in the .env file
 export function logEvent(
   eventType: string, 
-  eventProperties: Record<string, any> = {}, 
+  eventProperties: Record<string, string | number | boolean> = {}, 
   deviceId: string | null = null
 ) {
   if (process.env.NEXT_PUBLIC_ANALYTICS_ENABLED?.toLowerCase() !== 'true' || process.env.NODE_ENV !== "production") {

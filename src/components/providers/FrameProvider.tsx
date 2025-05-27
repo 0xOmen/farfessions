@@ -100,7 +100,9 @@ export function useFrame() {
             "Frame Opened",
             {
               ...amplitudeBaseEvent,
-              location: context.location,
+              location: context.location
+                ? JSON.stringify(context.location)
+                : "unknown",
               added: context.client.added,
             },
             amplitudeUserId

@@ -56,7 +56,7 @@ export type FarfessionWithUserVote = Farfession & {
 // Function to test Supabase connection
 export async function testSupabaseConnection() {
   try {
-    const { data, error } = await supabase.from('farfessions').select('count').limit(1);
+    const { error } = await supabase.from('farfessions').select('count').limit(1);
     if (error) {
       console.error('Supabase connection test failed:', error);
       return false;
