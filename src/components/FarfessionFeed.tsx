@@ -162,7 +162,7 @@ export default function FarfessionFeed() {
         return (
           <div
             key={farfession.id}
-            className="p-4 bg-[#7252B8] rounded-lg shadow"
+            className="p-4 bg-[#7252B8] rounded-lg shadow border border-black"
           >
             <p className="mb-3">{farfession.text}</p>
             <div className="flex gap-4">
