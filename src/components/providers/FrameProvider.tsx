@@ -91,7 +91,7 @@ export function useFrame() {
         if (context && context.user && context.client) {
           const amplitudeBaseEvent = {
             fid: context.user.fid,
-            username: context.user.username,
+            username: context.user.username || "unknown",
             clientFid: context.client.clientFid,
           };
           const amplitudeUserId = `${context.user.fid}-${context.client.clientFid}`;
