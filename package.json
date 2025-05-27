@@ -1,5 +1,5 @@
 {
-  "name": "Farfessions",
+  "name": "farfessions",
   "version": "0.1.0",
   "type": "module",
   "private": false,
@@ -17,7 +17,8 @@
     "start": "next start",
     "lint": "next lint",
     "deploy:vercel": "node scripts/deploy.js",
-    "cleanup": "lsof -ti :3000 | xargs kill -9"
+    "cleanup": "lsof -ti :3000 | xargs kill -9",
+    "setup-signer": "npx tsx scripts/setup-neynar-signer.ts"
   },
   "dependencies": {
     "@farcaster/auth-client": ">=0.3.0 <1.0.0",

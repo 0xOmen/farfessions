@@ -33,6 +33,11 @@ import { PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 import { submitFarfession, canUserSubmitToday } from "~/lib/supabase";
 import FarfessionFeed from "./FarfessionFeed";
 
+// Payment constants
+const USDC_CONTRACT_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // USDC on Base
+const FARFESSIONS_WALLET = "0x3c9ca97168abd573cbc9605a47996abae1885d60"; // You'll need to provide your farfessions wallet address
+const PAYMENT_AMOUNT = "500000"; // $0.50 in USDC (6 decimals)
+
 export default function Farfessions(
   { title }: { title?: string } = { title: "Frames v2 Demo" }
 ) {
@@ -55,6 +60,9 @@ export default function Farfessions(
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [canSubmitToday, setCanSubmitToday] = useState<boolean | null>(null);
   const [checkingSubmissionLimit, setCheckingSubmissionLimit] = useState(false);
+  const [isPaymentPending, setIsPaymentPending] = useState(false);
+  const [paymentTxHash, setPaymentTxHash] = useState<string | null>(null);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
@@ -273,6 +281,101 @@ export default function Farfessions(
     }
   };
 
+  const handlePayToPost = useCallback(async () => {
+    if (!farfession.trim()) {
+      alert("Please enter a farfession first");
+      return;
+    }
+
+    if (!isConnected) {
+      alert("Please connect your wallet first");
+      return;
+    }
+
+    if (chainId !== base.id) {
+      alert("Please switch to Base network to make payment");
+      return;
+    }
+
+    setIsPaymentPending(true);
+
+    try {
+      // Send USDC payment
+      sendTransaction(
+        {
+          to: USDC_CONTRACT_ADDRESS,
+          data: `0xa9059cbb${FARFESSIONS_WALLET.slice(2).padStart(
+            64,
+            "0"
+          )}${PAYMENT_AMOUNT.padStart(64, "0")}`, // transfer(address,uint256)
+        },
+        {
+          onSuccess: (hash) => {
+            setPaymentTxHash(hash);
+            alert(
+              "Payment sent! Your farfession will be posted once payment is confirmed."
+            );
+          },
+          onError: (error) => {
+            console.error("Payment failed:", error);
+            alert("Payment failed. Please try again.");
+          },
+        }
+      );
+    } catch (error) {
+      console.error("Payment failed:", error);
+      alert("Payment failed. Please try again.");
+    } finally {
+      setIsPaymentPending(false);
+    }
+  }, [farfession, isConnected, chainId, sendTransaction]);
+
+  // Watch for payment confirmation
+  const { isLoading: isPaymentConfirming, isSuccess: isPaymentConfirmed } =
+    useWaitForTransactionReceipt({
+      hash: paymentTxHash as `0x${string}`,
+    });
+
+  useEffect(() => {
+    if (isPaymentConfirmed && paymentTxHash && farfession.trim()) {
+      handleProcessPayment();
+    }
+  }, [isPaymentConfirmed, paymentTxHash, farfession]);
+
+  const handleProcessPayment = async () => {
+    setIsProcessingPayment(true);
+
+    try {
+      // Submit to database and post to Farcaster
+      const response = await fetch("/api/pay-to-post", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text: farfession,
+          userFid: context?.user?.fid,
+          paymentTxHash,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to process payment");
+      }
+
+      const result = await response.json();
+
+      setFarfession(""); // Clear the input
+      setPaymentTxHash(null);
+      alert(`Your farfession has been posted! Cast hash: ${result.castHash}`);
+    } catch (error) {
+      console.error("Error processing payment:", error);
+      alert("Payment confirmed but posting failed. Please contact support.");
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
+
   if (!isSDKLoaded) {
     return <div>Loading...</div>;
   }
@@ -362,7 +465,35 @@ export default function Farfessions(
             >
               {checkingSubmissionLimit ? "Checking..." : "Submit"}
             </Button>
+
+            <Button
+              className="flex-1"
+              onClick={handlePayToPost}
+              disabled={
+                isPaymentPending ||
+                isProcessingPayment ||
+                !farfession.trim() ||
+                farfession.length > 1000 ||
+                !isConnected ||
+                chainId !== base.id
+              }
+              isLoading={isPaymentPending || isProcessingPayment}
+            >
+              {isPaymentPending
+                ? "Sending..."
+                : isProcessingPayment
+                  ? "Posting..."
+                  : "Pay to Post ($0.50)"}
+            </Button>
           </div>
+
+          {/* Payment status */}
+          {paymentTxHash && (
+            <div className="mt-2 text-xs text-green-400">
+              Payment sent!{" "}
+              {isPaymentConfirming ? "Confirming..." : "Confirmed ✓"}
+            </div>
+          )}
         </div>
 
         <FarfessionFeed />
