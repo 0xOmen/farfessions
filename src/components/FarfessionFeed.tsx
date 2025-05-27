@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { FarfessionWithUserVote } from "~/lib/supabase";
-import { Button } from "./ui/Button";
 import { useFrame } from "~/components/providers/FrameProvider";
 
 export default function FarfessionFeed() {

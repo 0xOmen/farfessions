@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase, likeFarfession, dislikeFarfession } from '~/lib/supabase';
+import { likeFarfession, dislikeFarfession } from '~/lib/supabase';
 
 export async function POST(
   request: NextRequest,
@@ -23,9 +23,6 @@ export async function POST(
         { status: 400 }
       );
     }
-
-    const ADMIN_FID = 212074;
-    const isAdmin = userFid === ADMIN_FID;
     
     if (action === 'like') {
       const result = await likeFarfession(id, userFid);
