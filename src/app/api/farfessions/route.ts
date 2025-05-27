@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase, submitFarfession, getFarfessions, getFarfessionsWithUserVotes } from '~/lib/supabase';
+import { submitFarfession, getFarfessions, getFarfessionsWithUserVotes } from '~/lib/supabase';
 
 export async function GET(request: NextRequest) {
   try {

@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Input } from "../components/ui/input";
 import { signIn, signOut, getCsrfToken } from "next-auth/react";
 import sdk, { SignIn as SignInCore } from "@farcaster/frame-sdk";
 import {
@@ -27,7 +26,6 @@ import { truncateAddress } from "~/lib/truncateAddress";
 import { base, degen, mainnet, optimism, unichain } from "wagmi/chains";
 import { BaseError, UserRejectedRequestError } from "viem";
 import { useSession } from "next-auth/react";
-import { Label } from "~/components/ui/label";
 import { useFrame } from "~/components/providers/FrameProvider";
 import { PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 import { submitFarfession, canUserSubmitToday } from "~/lib/supabase";
@@ -483,7 +481,7 @@ export default function Farfessions(
                 ? "Sending..."
                 : isProcessingPayment
                   ? "Posting..."
-                  : "Pay to Post ($0.50)"}
+                  : "Pay to Cast ($0.50)"}
             </Button>
           </div>
 
