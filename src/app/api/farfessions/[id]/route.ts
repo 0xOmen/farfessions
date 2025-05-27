@@ -3,10 +3,11 @@ import { supabase, likeFarfession, dislikeFarfession } from '~/lib/supabase';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id: idParam } = await params;
+    const id = parseInt(idParam);
     if (isNaN(id)) {
       return NextResponse.json(
         { error: 'Invalid ID' },
@@ -39,7 +40,7 @@ export async function POST(
       );
     }
   } catch (error) {
-    console.error(`Error processing action for farfession ${params.id}:`, error);
+    console.error(`Error processing action for farfession:`, error);
     
     // Handle specific voting errors
     if (error instanceof Error) {
