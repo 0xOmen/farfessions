@@ -1,0 +1,21 @@
+{
+    "frame": {
+        "version": "1",
+        "name": "Farfessions",
+        "iconUrl": "https://farfessions.vercel.app/icon.png",
+        "homeUrl": "https://farfessions.vercel.app/",
+        "imageUrl": "https://farfessions.vercel.app/opengraph-image",
+        "buttonTitle": "🤫 Spill the tea",
+        "splashImageUrl": "https://farfessions.vercel.app/splash.png",
+        "splashBackgroundColor": "#f7f7f7",
+        "primaryCategory": "social",
+        "requiredChains": [
+            "eip155:8453"
+        ],
+        "requiredCapabilities": [
+            "actions.signIn",
+            "wallet.getEthereumProvider",
+            "actions.swapToken"
+        ]
+    }
+}
