@@ -1,7 +1,23 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { mnemonicToAccount } from 'viem/accounts';
-import { APP_BUTTON_TEXT, APP_DESCRIPTION, APP_ICON_URL, APP_NAME, APP_OG_IMAGE_URL, APP_PRIMARY_CATEGORY, APP_SPLASH_BACKGROUND_COLOR, APP_TAGS, APP_URL, APP_WEBHOOK_URL } from './constants';
+import { 
+  APP_BUTTON_TEXT, 
+  APP_DESCRIPTION, 
+  APP_ICON_URL, 
+  APP_NAME, 
+  APP_OG_IMAGE_URL, 
+  APP_PRIMARY_CATEGORY, 
+  APP_SPLASH_BACKGROUND_COLOR, 
+  APP_TAGS, 
+  APP_URL, 
+  APP_WEBHOOK_URL,
+  APP_SUBTITLE,
+  APP_TAGLINE,
+  APP_OG_TITLE,
+  APP_OG_DESCRIPTION,
+  APP_HERO_IMAGE_URL
+} from './constants';
 import { APP_SPLASH_URL } from './constants';
 
 interface FrameMetadata {
@@ -17,6 +33,13 @@ interface FrameMetadata {
   description?: string;
   primaryCategory?: string;
   tags?: string[];
+  subtitle?: string;
+  tagline?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImageUrl?: string;
+  heroImageUrl?: string;
+  noindex?: boolean;
 };
 
 interface FrameManifest {
@@ -123,17 +146,24 @@ export async function getFarcasterMetadata(): Promise<FrameManifest> {
     accountAssociation,
     frame: {
       version: "1",
-      name: APP_NAME ?? "Frames v2 Demo",
+      name: APP_NAME ?? "Farfessions",
       iconUrl: APP_ICON_URL,
       homeUrl: APP_URL,
       imageUrl: APP_OG_IMAGE_URL,
-      buttonTitle: APP_BUTTON_TEXT ?? "Launch Frame",
+      buttonTitle: APP_BUTTON_TEXT ?? "🤫 Share Secrets",
       splashImageUrl: APP_SPLASH_URL,
       splashBackgroundColor: APP_SPLASH_BACKGROUND_COLOR,
       webhookUrl: APP_WEBHOOK_URL,
-      description: APP_DESCRIPTION,
-      primaryCategory: APP_PRIMARY_CATEGORY,
-      tags: APP_TAGS,
+      description: APP_DESCRIPTION ?? "Anonymous confessions for the Farcaster community",
+      primaryCategory: APP_PRIMARY_CATEGORY ?? "social",
+      tags: APP_TAGS ?? ["confessions", "anonymous", "social", "farcaster"],
+      subtitle: APP_SUBTITLE,
+      tagline: APP_TAGLINE,
+      ogTitle: APP_OG_TITLE,
+      ogDescription: APP_OG_DESCRIPTION,
+      ogImageUrl: APP_OG_IMAGE_URL,
+      heroImageUrl: APP_HERO_IMAGE_URL,
+      noindex: false,
     },
   };
 }

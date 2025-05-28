@@ -11,3 +11,9 @@ export const APP_BUTTON_TEXT = process.env.NEXT_PUBLIC_FRAME_BUTTON_TEXT;
 export const APP_WEBHOOK_URL = process.env.NEYNAR_API_KEY && process.env.NEYNAR_CLIENT_ID 
     ? `https://api.neynar.com/f/app/${process.env.NEYNAR_CLIENT_ID}/event`
     : `${APP_URL}/api/webhook`;
+
+export const APP_SUBTITLE = "Anonymously submit and review confessions";
+export const APP_TAGLINE = "Share your secrets anonymously";
+export const APP_OG_TITLE = "Farfessions";
+export const APP_OG_DESCRIPTION = "Anonymous confessions for the Farcaster community";
+export const APP_HERO_IMAGE_URL = `${APP_URL}/hero.png`;
