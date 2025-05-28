@@ -1,5 +1,9 @@
 {
-    "accountAssociation": {},
+    "accountAssociation": {
+        "header": "eyJmaWQiOjIxMjA3NCwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDViYjk1NTM1REYyNjQ0MTg3NDcwMEEyNDI4Y0RkNDhGRjQxYjJEZTkifQ",
+        "payload": "eyJkb21haW4iOiJmYXJmZXNzaW9ucy52ZXJjZWwuYXBwIn0",
+        "signature": "MHg2NmIxOTNlYmQ4MDAwYjAwMzk1ZTUyZjZmMDA1ZGQ3MjM2ZWIyNDk5ZWY5MjlhMmU2YWEyMmUyNDQzZjNhNzM1MTRlMzM3NGJmNmRjODQwMjFhY2Y4ZTAwZGZiZTAwYmM1ZDQ1ZDY5YzI4MmU3MzljZDc1ZWQ4NTYxNDkwODVkMDFi"
+    },
     "frame": {
         "version": "1",
         "name": "Farfessions",
