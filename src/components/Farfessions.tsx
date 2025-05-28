@@ -34,7 +34,7 @@ import FarfessionFeed from "./FarfessionFeed";
 // Payment constants
 const USDC_CONTRACT_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // USDC on Base
 const FARFESSIONS_WALLET = "0x3c9ca97168abd573cbc9605a47996abae1885d60"; // You'll need to provide your farfessions wallet address
-const PAYMENT_AMOUNT = "10000"; // $0.50 in USDC (6 decimals)
+const PAYMENT_AMOUNT = "500000"; // $0.50 in USDC (6 decimals)
 
 // Convert PAYMENT_AMOUNT to dollar string
 const PAYMENT_DOLLAR_AMOUNT = `$${(parseInt(PAYMENT_AMOUNT) / 1000000).toFixed(
