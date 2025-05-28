@@ -1,4 +1,9 @@
 {
+    "accountAssociation": {
+        "header": "",
+        "payload": "",
+        "signature": ""
+    },
     "frame": {
         "version": "1",
         "name": "Farfessions",
@@ -11,6 +16,12 @@
         "primaryCategory": "social",
         "requiredChains": [
             "eip155:8453"
+        ],
+        "tags": [
+            "confessions",
+            "anonymous",
+            "social",
+            "farcaster"
         ],
         "requiredCapabilities": [
             "actions.signIn",
