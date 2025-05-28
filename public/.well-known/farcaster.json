@@ -12,7 +12,7 @@
         "imageUrl": "https://farfessions.vercel.app/opengraph-image",
         "buttonTitle": "🤫 Spill the tea",
         "splashImageUrl": "https://farfessions.vercel.app/splash.png",
-        "splashBackgroundColor": "#f7f7f7",
+        "splashBackgroundColor": "#8A63D2",
         "primaryCategory": "social",
         "requiredChains": [
             "eip155:8453"
