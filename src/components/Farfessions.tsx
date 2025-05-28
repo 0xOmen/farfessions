@@ -410,14 +410,7 @@ export default function Farfessions(
                     </span>
                   )}
                 </span>
-              ) : (
-                <span className="text-green-400">
-                  ✅ You can submit a farfession today
-                  {context.user.fid === 212074 && (
-                    <span className="ml-1">(Admin: unlimited submissions)</span>
-                  )}
-                </span>
-              )}
+              ) : null}
             </div>
           )}
 

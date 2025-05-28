@@ -202,7 +202,7 @@ export default function FarfessionFeed() {
                 </div>
               </div>
             )}
-            <div className="p-4 bg-[#7252B8] rounded-lg shadow border border-black">
+            <div className="p-4 bg-[#7252B8] rounded-lg shadow border border-white">
               <p className="mb-3">{farfession.text}</p>
               <div className="flex gap-4">
                 <button
