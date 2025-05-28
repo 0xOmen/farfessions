@@ -1,6 +1,5 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { mnemonicToAccount } from 'viem/accounts';
 import { 
   APP_BUTTON_TEXT, 
   APP_DESCRIPTION, 
@@ -12,13 +11,14 @@ import {
   APP_TAGS, 
   APP_URL, 
   APP_WEBHOOK_URL,
-  APP_SUBTITLE,
   APP_TAGLINE,
   APP_OG_TITLE,
   APP_OG_DESCRIPTION,
   APP_HERO_IMAGE_URL
 } from './constants';
 import { APP_SPLASH_URL } from './constants';
+import fs from 'fs';
+import path from 'path';
 
 interface FrameMetadata {
   version: string;
@@ -40,6 +40,8 @@ interface FrameMetadata {
   ogImageUrl?: string;
   heroImageUrl?: string;
   noindex?: boolean;
+  requiredChains?: string[];
+  requiredCapabilities?: string[];
 };
 
 interface FrameManifest {
@@ -53,17 +55,6 @@ interface FrameManifest {
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
-}
-
-export function getSecretEnvVars() {
-  const seedPhrase = process.env.SEED_PHRASE;
-  const fid = process.env.FID;
-  
-  if (!seedPhrase || !fid) {
-    return null;
-  }
-
-  return { seedPhrase, fid };
 }
 
 export function getFrameEmbedMetadata(ogImageUrl?: string) {
@@ -99,47 +90,20 @@ export async function getFarcasterMetadata(): Promise<FrameManifest> {
     }
   }
 
+  // Read accountAssociation from static farcaster.json file
+  let accountAssociation;
+  try {
+    const farcasterJsonPath = path.join(process.cwd(), 'public', '.well-known', 'farcaster.json');
+    const farcasterJsonContent = fs.readFileSync(farcasterJsonPath, 'utf8');
+    const farcasterJson = JSON.parse(farcasterJsonContent);
+    accountAssociation = farcasterJson.accountAssociation;
+    console.log('Using accountAssociation from farcaster.json');
+  } catch (error) {
+    console.warn('Failed to read accountAssociation from farcaster.json:', error);
+  }
+
   if (!APP_URL) {
     throw new Error('NEXT_PUBLIC_URL not configured');
-  }
-
-  // Get the domain from the URL (without https:// prefix)
-  const domain = new URL(APP_URL).hostname;
-  console.log('Using domain for manifest:', domain);
-
-  const secretEnvVars = getSecretEnvVars();
-  if (!secretEnvVars) {
-    console.warn('No seed phrase or FID found in environment variables -- generating unsigned metadata');
-  }
-
-  let accountAssociation;
-  if (secretEnvVars) {
-    // Generate account from seed phrase
-    const account = mnemonicToAccount(secretEnvVars.seedPhrase);
-    const custodyAddress = account.address;
-
-    const header = {
-      fid: parseInt(secretEnvVars.fid),
-      type: 'custody',
-      key: custodyAddress,
-    };
-    const encodedHeader = Buffer.from(JSON.stringify(header), 'utf-8').toString('base64');
-
-    const payload = {
-      domain
-    };
-    const encodedPayload = Buffer.from(JSON.stringify(payload), 'utf-8').toString('base64url');
-
-    const signature = await account.signMessage({ 
-      message: `${encodedHeader}.${encodedPayload}`
-    });
-    const encodedSignature = Buffer.from(signature, 'utf-8').toString('base64url');
-
-    accountAssociation = {
-      header: encodedHeader,
-      payload: encodedPayload,
-      signature: encodedSignature
-    };
   }
 
   return {
@@ -154,16 +118,21 @@ export async function getFarcasterMetadata(): Promise<FrameManifest> {
       splashImageUrl: APP_SPLASH_URL,
       splashBackgroundColor: APP_SPLASH_BACKGROUND_COLOR,
       webhookUrl: APP_WEBHOOK_URL,
-      description: APP_DESCRIPTION ?? "Anonymous confessions for the Farcaster community",
+      description: APP_DESCRIPTION ?? "Anonymously share with Farcaster",
       primaryCategory: APP_PRIMARY_CATEGORY ?? "social",
       tags: APP_TAGS ?? ["confessions", "anonymous", "social", "farcaster"],
-      subtitle: APP_SUBTITLE,
       tagline: APP_TAGLINE,
       ogTitle: APP_OG_TITLE,
       ogDescription: APP_OG_DESCRIPTION,
       ogImageUrl: APP_OG_IMAGE_URL,
       heroImageUrl: APP_HERO_IMAGE_URL,
       noindex: false,
+      requiredChains: ["eip155:8453"],
+      requiredCapabilities: [
+        "actions.signIn",
+        "wallet.getEthereumProvider",
+        "actions.swapToken"
+      ],
     },
   };
 }

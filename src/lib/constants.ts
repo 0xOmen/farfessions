@@ -6,14 +6,13 @@ export const APP_TAGS = process.env.NEXT_PUBLIC_FRAME_TAGS?.split(',');
 export const APP_ICON_URL = `${APP_URL}/icon.png`;
 export const APP_OG_IMAGE_URL = `${APP_URL}/api/opengraph-image`;
 export const APP_SPLASH_URL = `${APP_URL}/splash.png`;
-export const APP_SPLASH_BACKGROUND_COLOR = "#f7f7f7";
+export const APP_SPLASH_BACKGROUND_COLOR = "#8A63D2";
 export const APP_BUTTON_TEXT = process.env.NEXT_PUBLIC_FRAME_BUTTON_TEXT;
 export const APP_WEBHOOK_URL = process.env.NEYNAR_API_KEY && process.env.NEYNAR_CLIENT_ID 
     ? `https://api.neynar.com/f/app/${process.env.NEYNAR_CLIENT_ID}/event`
     : `${APP_URL}/api/webhook`;
 
-export const APP_SUBTITLE = "Anonymously submit and review confessions";
 export const APP_TAGLINE = "Share your secrets anonymously";
 export const APP_OG_TITLE = "Farfessions";
-export const APP_OG_DESCRIPTION = "Anonymous confessions for the Farcaster community";
+export const APP_OG_DESCRIPTION = "Anonymously share with Farcaster";
 export const APP_HERO_IMAGE_URL = `${APP_URL}/hero.png`;
