@@ -36,6 +36,11 @@ const USDC_CONTRACT_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // U
 const FARFESSIONS_WALLET = "0x3c9ca97168abd573cbc9605a47996abae1885d60"; // You'll need to provide your farfessions wallet address
 const PAYMENT_AMOUNT = "500000"; // $0.50 in USDC (6 decimals)
 
+// Convert PAYMENT_AMOUNT to dollar string
+const PAYMENT_DOLLAR_AMOUNT = `$${(parseInt(PAYMENT_AMOUNT) / 1000000).toFixed(
+  2
+)}`;
+
 export default function Farfessions(
   { title }: { title?: string } = { title: "Frames v2 Demo" }
 ) {
@@ -305,7 +310,7 @@ export default function Farfessions(
           data: `0xa9059cbb${FARFESSIONS_WALLET.slice(2).padStart(
             64,
             "0"
-          )}${PAYMENT_AMOUNT.padStart(64, "0")}`, // transfer(address,uint256)
+          )}${PAYMENT_AMOUNT}`, // transfer(address,uint256)
         },
         {
           onSuccess: (hash) => {
@@ -474,7 +479,7 @@ export default function Farfessions(
                 ? "Sending..."
                 : isProcessingPayment
                   ? "Posting..."
-                  : "Pay to Cast ($0.50)"}
+                  : `Pay to Cast (${PAYMENT_DOLLAR_AMOUNT})`}
             </Button>
           </div>
 
