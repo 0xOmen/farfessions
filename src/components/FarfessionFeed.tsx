@@ -29,23 +29,40 @@ export default function FarfessionFeed() {
 
       const data = await response.json();
 
-      // Filter to only show submissions from the last 24 hours
+      // Define time periods
+      const now = new Date();
       const twentyFourHoursAgo = new Date();
       twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
 
-      const recentFarfessions = data.farfessions.filter(
-        (farfession: FarfessionWithUserVote) => {
-          const submissionDate = new Date(farfession.created_at);
-          return submissionDate >= twentyFourHoursAgo;
-        }
-      );
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
-      // Sort by likes in descending order (most likes first)
-      const sortedFarfessions = recentFarfessions.sort(
-        (a: FarfessionWithUserVote, b: FarfessionWithUserVote) =>
-          b.likes - a.likes
-      );
-      setFarfessions(sortedFarfessions);
+      // Separate farfessions by time period
+      const last24Hours: FarfessionWithUserVote[] = [];
+      const lastWeek: FarfessionWithUserVote[] = [];
+
+      data.farfessions.forEach((farfession: FarfessionWithUserVote) => {
+        const submissionDate = new Date(farfession.created_at);
+
+        if (submissionDate >= twentyFourHoursAgo) {
+          // Last 24 hours
+          last24Hours.push(farfession);
+        } else if (submissionDate >= oneWeekAgo) {
+          // Last week (excluding last 24 hours)
+          lastWeek.push(farfession);
+        }
+        // Ignore anything older than a week
+      });
+
+      // Sort both groups by likes (descending)
+      const sortedLast24Hours = last24Hours.sort((a, b) => b.likes - a.likes);
+
+      const sortedLastWeek = lastWeek.sort((a, b) => b.likes - a.likes);
+
+      // Combine: 24 hours first, then week
+      const combinedFarfessions = [...sortedLast24Hours, ...sortedLastWeek];
+
+      setFarfessions(combinedFarfessions);
     } catch (err) {
       console.error("Error fetching farfessions:", err);
       setError("Failed to load farfessions. Please try again later.");
@@ -153,42 +170,66 @@ export default function FarfessionFeed() {
           </svg>
         </button>
       </div>
-      {farfessions.map((farfession) => {
+
+      {farfessions.map((farfession, index) => {
         const userFid = context?.user?.fid;
         const ADMIN_FID = 212074;
         const isAdmin = userFid === ADMIN_FID;
 
+        // Check if this is the first item from the "last week" section
+        const submissionDate = new Date(farfession.created_at);
+        const twentyFourHoursAgo = new Date();
+        twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+
+        const isFromLastWeek = submissionDate < twentyFourHoursAgo;
+        const prevFarfession = index > 0 ? farfessions[index - 1] : null;
+        const prevSubmissionDate = prevFarfession
+          ? new Date(prevFarfession.created_at)
+          : null;
+        const prevIsFromLast24Hours = prevSubmissionDate
+          ? prevSubmissionDate >= twentyFourHoursAgo
+          : false;
+
+        // Show section divider when transitioning from 24h to week
+        const showWeekDivider = isFromLastWeek && prevIsFromLast24Hours;
+
         return (
-          <div
-            key={farfession.id}
-            className="p-4 bg-[#7252B8] rounded-lg shadow border border-black"
-          >
-            <p className="mb-3">{farfession.text}</p>
-            <div className="flex gap-4">
-              <button
-                onClick={() => handleLike(farfession.id)}
-                className={`flex items-center gap-1 text-sm hover:text-white px-2 py-1 rounded ${
-                  farfession.user_vote === "like" && !isAdmin
-                    ? "bg-green-600 text-white"
-                    : "bg-[#7252B8]"
-                }`}
-                disabled={farfession.user_vote === "like" && !isAdmin}
-              >
-                👍 {farfession.likes}
-                {isAdmin && <span className="text-xs ml-1">(Admin)</span>}
-              </button>
-              <button
-                onClick={() => handleDislike(farfession.id)}
-                className={`flex items-center gap-1 text-sm hover:text-white px-2 py-1 rounded ${
-                  farfession.user_vote === "dislike" && !isAdmin
-                    ? "bg-red-600 text-white"
-                    : "bg-[#7252B8]"
-                }`}
-                disabled={farfession.user_vote === "dislike" && !isAdmin}
-              >
-                👎 {farfession.dislikes}
-                {isAdmin && <span className="text-xs ml-1">(Admin)</span>}
-              </button>
+          <div key={farfession.id}>
+            {showWeekDivider && (
+              <div className="text-center py-2">
+                <div className="text-sm text-gray-400 font-semibold">
+                  — From This Week —
+                </div>
+              </div>
+            )}
+            <div className="p-4 bg-[#7252B8] rounded-lg shadow border border-black">
+              <p className="mb-3">{farfession.text}</p>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => handleLike(farfession.id)}
+                  className={`flex items-center gap-1 text-sm hover:text-white px-2 py-1 rounded ${
+                    farfession.user_vote === "like" && !isAdmin
+                      ? "bg-green-600 text-white"
+                      : "bg-[#7252B8]"
+                  }`}
+                  disabled={farfession.user_vote === "like" && !isAdmin}
+                >
+                  👍 {farfession.likes}
+                  {isAdmin && <span className="text-xs ml-1">(Admin)</span>}
+                </button>
+                <button
+                  onClick={() => handleDislike(farfession.id)}
+                  className={`flex items-center gap-1 text-sm hover:text-white px-2 py-1 rounded ${
+                    farfession.user_vote === "dislike" && !isAdmin
+                      ? "bg-red-600 text-white"
+                      : "bg-[#7252B8]"
+                  }`}
+                  disabled={farfession.user_vote === "dislike" && !isAdmin}
+                >
+                  👎 {farfession.dislikes}
+                  {isAdmin && <span className="text-xs ml-1">(Admin)</span>}
+                </button>
+              </div>
             </div>
           </div>
         );
