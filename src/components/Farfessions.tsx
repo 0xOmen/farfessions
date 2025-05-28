@@ -395,15 +395,15 @@ export default function Farfessions(
         paddingRight: context?.client.safeAreaInsets?.right ?? 0,
       }}
     >
-      <div className="w-[300px] mx-auto py-2 px-2 text-white">
-        <h1 className="text-2xl font-bold text-center mb-4">{title}</h1>
+      <div className="w-[300px] mx-auto py-1 px-2 text-white">
+        <h1 className="text-2xl font-bold text-center mb-2">{title}</h1>
 
-        <div className="mb-6">
-          <h2 className="text-xl font-bold mb-2">Farfessions</h2>
+        <div className="mb-3">
+          <h2 className="text-xl font-bold mb-1">Farfessions</h2>
 
           {/* Daily submission status */}
           {context?.user?.fid && (
-            <div className="mb-2 text-xs">
+            <div className="mb-1 text-xs">
               {checkingSubmissionLimit ? (
                 <span className="text-gray-300">
                   Checking submission limit...
@@ -423,7 +423,7 @@ export default function Farfessions(
           )}
 
           <textarea
-            className="w-full p-2 border border-gray-300 rounded-md mb-2 text-[#333333] bg-white"
+            className="w-full p-2 border border-gray-300 rounded-md mb-1 text-[#333333] bg-white"
             rows={4}
             placeholder="What is your secret Farfession?"
             value={farfession}
@@ -436,7 +436,7 @@ export default function Farfessions(
             disabled={isSubmitting || checkingSubmissionLimit}
             maxLength={1000}
           />
-          <div className="flex justify-between items-center mb-2">
+          <div className="flex justify-between items-center mb-1">
             <div
               className={`text-xs ${
                 farfession.length > 900
@@ -488,7 +488,7 @@ export default function Farfessions(
 
           {/* Payment status */}
           {paymentTxHash && (
-            <div className="mt-2 text-xs text-green-400">
+            <div className="mt-1 text-xs text-green-400">
               Payment sent!{" "}
               {isPaymentConfirming ? "Confirming..." : "Confirmed ✓"}
             </div>
@@ -500,7 +500,7 @@ export default function Farfessions(
         <div>
           <h2 className="font-2xl font-bold">Add to client & notifications</h2>
 
-          <div className="mt-2 mb-4 text-sm">
+          <div className="mt-1 mb-2 text-sm">
             Client fid {context?.client.clientFid},
             {added ? " frame added to client," : " frame not added to client,"}
             {notificationDetails
@@ -508,14 +508,14 @@ export default function Farfessions(
               : " notifications disabled"}
           </div>
 
-          <div className="mb-4">
-            <div className="p-2 bg-[#7252B8] rounded-lg my-2">
+          <div className="mb-2">
+            <div className="p-2 bg-[#7252B8] rounded-lg my-1">
               <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x- text-white">
                 sdk.actions.addFrame
               </pre>
             </div>
             {addFrameResult && (
-              <div className="mb-2 text-sm">
+              <div className="mb-1 text-sm">
                 Add frame result: {addFrameResult}
               </div>
             )}
