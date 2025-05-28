@@ -23,9 +23,7 @@ export async function GET(request: NextRequest) {
           </div>
         )}
         <h1 tw="text-8xl text-white">
-          {
-            "I've never liked matcha. I just say I do to sound health-conscious while secretly mainlining gas station coffee and energy drinks."
-          }
+          {"🫣 See more confessions in the app 🤫"}
         </h1>
         <p tw="text-5xl mt-4 text-white opacity-80">Powered by Neynar 🪐</p>
       </div>

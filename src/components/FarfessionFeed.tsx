@@ -148,6 +148,9 @@ export default function FarfessionFeed() {
     <div className="space-y-4 mt-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold">Recent Farfessions</h2>
+        <div className="text-sm text-white-400 font-semibold">
+          "Like" the best confessions!
+        </div>
         <button
           onClick={fetchFarfessions}
           disabled={loading}
