@@ -497,28 +497,6 @@ export default function Farfessions(
         <FarfessionFeed />
 
         <div>
-          <h2 className="font-2xl font-bold">Actions</h2>
-
-          <div className="mb-4">
-            <div className="p-2 bg-[#7252B8] rounded-lg my-2">
-              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x- text-white">
-                sdk.actions.signIn
-              </pre>
-            </div>
-            <SignIn />
-          </div>
-
-          <div className="mb-4">
-            <div className="p-2 bg-[#7252B8] rounded-lg my-2">
-              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x- text-white">
-                sdk.actions.close
-              </pre>
-            </div>
-            <Button onClick={close}>Close Frame</Button>
-          </div>
-        </div>
-
-        <div>
           <h2 className="font-2xl font-bold">Add to client & notifications</h2>
 
           <div className="mt-2 mb-4 text-sm">
@@ -571,86 +549,6 @@ export default function Farfessions(
               {copied ? "Copied!" : "Copy share URL"}
             </Button>
           </div>
-        </div>
-
-        <div>
-          <h2 className="font-2xl font-bold">Wallet</h2>
-
-          {address && (
-            <div className="my-2 text-xs">
-              Address: <pre className="inline">{truncateAddress(address)}</pre>
-            </div>
-          )}
-
-          {chainId && (
-            <div className="my-2 text-xs">
-              Chain ID: <pre className="inline">{chainId}</pre>
-            </div>
-          )}
-
-          <div className="mb-4">
-            {isConnected ? (
-              <Button onClick={() => disconnect()} className="w-full">
-                Disconnect
-              </Button>
-            ) : context ? (
-              /* if context is not null, mini app is running in frame client */
-              <Button
-                onClick={() => connect({ connector: connectors[0] })}
-                className="w-full"
-              >
-                Connect
-              </Button>
-            ) : (
-              /* if context is null, mini app is running in browser */
-              <div className="space-y-2">
-                <Button
-                  onClick={() => connect({ connector: connectors[1] })}
-                  className="w-full"
-                >
-                  Connect Coinbase Wallet
-                </Button>
-                <Button
-                  onClick={() => connect({ connector: connectors[2] })}
-                  className="w-full"
-                >
-                  Connect MetaMask
-                </Button>
-              </div>
-            )}
-          </div>
-
-          <div className="mb-4">
-            <SignEvmMessage />
-          </div>
-
-          {isConnected && (
-            <>
-              <div className="mb-4">
-                <Button
-                  onClick={sendTx}
-                  disabled={!isConnected || isSendTxPending}
-                  isLoading={isSendTxPending}
-                >
-                  Send Transaction (contract)
-                </Button>
-                {isSendTxError && renderError(sendTxError)}
-                {txHash && (
-                  <div className="mt-2 text-xs">
-                    <div>Hash: {truncateAddress(txHash)}</div>
-                    <div>
-                      Status:{" "}
-                      {isConfirming
-                        ? "Confirming..."
-                        : isConfirmed
-                          ? "Confirmed!"
-                          : "Pending"}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
         </div>
       </div>
     </div>
