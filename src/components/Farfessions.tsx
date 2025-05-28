@@ -226,7 +226,9 @@ export default function Farfessions(
           setCheckingSubmissionLimit(false);
         }
       } else {
-        setCanSubmitToday(true); // Allow anonymous submissions
+        // No FID connected - block submissions
+        setCanSubmitToday(false);
+        setCheckingSubmissionLimit(false);
       }
     };
 
@@ -238,20 +240,24 @@ export default function Farfessions(
       return;
     }
 
+    // Block submission if no valid Farcaster FID is connected
+    const userFid = context?.user?.fid;
+    if (!userFid) {
+      alert(
+        "Please connect your Farcaster account to submit a farfession. Anonymous submissions are not allowed."
+      );
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      // Get FID from context if available, otherwise use undefined
-      const userFid = context?.user?.fid;
-
       await submitFarfession(farfession, userFid);
       setFarfession(""); // Clear the input after submission
 
       // Update daily submission status
-      if (userFid) {
-        const ADMIN_FID = 212074;
-        if (userFid !== ADMIN_FID) {
-          setCanSubmitToday(false); // Regular users can't submit again today
-        }
+      const ADMIN_FID = 212074;
+      if (userFid !== ADMIN_FID) {
+        setCanSubmitToday(false); // Regular users can't submit again today
       }
 
       alert("Your Farfession has been submitted!"); // Using alert since toast might not be installed
@@ -402,7 +408,13 @@ export default function Farfessions(
           <h2 className="text-xl font-bold mb-1">Farfessions</h2>
 
           {/* Daily submission status */}
-          {context?.user?.fid && (
+          {!context?.user?.fid ? (
+            <div className="mb-1 text-xs">
+              <span className="text-yellow-400">
+                ⚠️ Connect your Farcaster account to submit farfessions
+              </span>
+            </div>
+          ) : (
             <div className="mb-1 text-xs">
               {checkingSubmissionLimit ? (
                 <span className="text-gray-300">
@@ -458,11 +470,16 @@ export default function Farfessions(
                 checkingSubmissionLimit ||
                 !farfession.trim() ||
                 farfession.length > 1000 ||
+                !context?.user?.fid ||
                 (canSubmitToday === false && context?.user?.fid !== 212074)
               }
               isLoading={isSubmitting}
             >
-              {checkingSubmissionLimit ? "Checking..." : "Submit"}
+              {checkingSubmissionLimit
+                ? "Checking..."
+                : !context?.user?.fid
+                  ? "Connect Farcaster"
+                  : "Submit"}
             </Button>
 
             <Button
