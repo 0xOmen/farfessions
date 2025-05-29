@@ -541,6 +541,50 @@ export default function Farfessions(
             </Button>
           </div>
         </div>
+
+        {context?.user?.fid === 212074 && (
+          <div className="mt-2">
+            <h3 className="text-sm font-bold mb-1">Admin Actions</h3>
+            <div className="flex gap-2">
+              <Button
+                className="text-xs px-2 py-1"
+                onClick={async () => {
+                  try {
+                    const response = await fetch("/api/post-top-submissions", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ period: "daily" }),
+                    });
+                    const result = await response.json();
+                    alert(`Posted! Cast: ${result.castUrl}`);
+                  } catch (error) {
+                    alert("Error posting top submissions");
+                  }
+                }}
+              >
+                Post Daily Top
+              </Button>
+              <Button
+                className="text-xs px-2 py-1"
+                onClick={async () => {
+                  try {
+                    const response = await fetch("/api/post-top-submissions", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ period: "weekly" }),
+                    });
+                    const result = await response.json();
+                    alert(`Posted! Cast: ${result.castUrl}`);
+                  } catch (error) {
+                    alert("Error posting top submissions");
+                  }
+                }}
+              >
+                Post Weekly Top
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
