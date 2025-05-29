@@ -516,16 +516,6 @@ export default function Farfessions(
 
         <div>
           <div className="mb-2">
-            <div className="p-2 bg-[#7252B8] rounded-lg my-1">
-              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x- text-white">
-                sdk.actions.addFrame
-              </pre>
-            </div>
-            {addFrameResult && (
-              <div className="mb-1 text-sm">
-                Add frame result: {addFrameResult}
-              </div>
-            )}
             <Button onClick={addFrame} disabled={added}>
               Add frame to client
             </Button>
