@@ -63,27 +63,54 @@ export const authOptions: AuthOptions = {
           return null;
         }
 
-        const appClient = createAppClient({
-          ethereum: viemConnector(),
-        });
+        try {
+          const appClient = createAppClient({
+            ethereum: viemConnector(),
+          });
 
-        const domain = getDomainFromUrl(process.env.NEXTAUTH_URL);
+          const domain = getDomainFromUrl(process.env.NEXTAUTH_URL);
 
-        const verifyResponse = await appClient.verifySignInMessage({
-          message: credentials?.message as string,
-          signature: credentials?.signature as `0x${string}`,
-          domain,
-          nonce: csrfToken,
-        });
-        const { success, fid } = verifyResponse;
+          console.log('Verifying sign-in message:', {
+            domain,
+            messageLength: credentials?.message?.length,
+            signatureLength: credentials?.signature?.length,
+            hasNonce: !!csrfToken
+          });
 
-        if (!success) {
+          const verifyResponse = await appClient.verifySignInMessage({
+            message: credentials?.message as string,
+            signature: credentials?.signature as `0x${string}`,
+            domain,
+            nonce: csrfToken,
+          });
+          
+          console.log('Verification response:', {
+            success: verifyResponse.success,
+            fid: verifyResponse.fid,
+            isAuthAddress: verifyResponse.isAuthAddress || false
+          });
+
+          const { success, fid, isAuthAddress } = verifyResponse;
+
+          if (!success) {
+            console.error('Sign-in verification failed');
+            return null;
+          }
+
+          // Log whether this was an auth address or custody address sign-in
+          if (isAuthAddress) {
+            console.log(`User ${fid} signed in with auth address`);
+          } else {
+            console.log(`User ${fid} signed in with custody address`);
+          }
+
+          return {
+            id: fid.toString(),
+          };
+        } catch (error) {
+          console.error('Error during sign-in verification:', error);
           return null;
         }
-
-        return {
-          id: fid.toString(),
-        };
       },
     }),
   ],

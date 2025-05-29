@@ -786,7 +786,10 @@ function SignIn() {
       setSigningIn(true);
       setSignInFailure(undefined);
       const nonce = await getNonce();
-      const result = await sdk.actions.signIn({ nonce });
+      const result = await sdk.actions.signIn({
+        nonce,
+        acceptAuthAddress: true,
+      });
       setSignInResult(result);
 
       await signIn("credentials", {
