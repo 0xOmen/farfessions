@@ -206,16 +206,22 @@ export async function voteOnFarfession(farfessionId: number, userFid: number, vo
   console.log('Farfession ID:', farfessionId);
   console.log('User FID:', userFid);
   console.log('Vote Type:', voteType);
+  console.log('Supabase URL configured:', !!supabaseUrl);
+  console.log('Supabase Key configured:', !!supabaseAnonKey);
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Supabase is not configured. Please check your environment variables.');
+    const error = new Error('Supabase is not configured. Please check your environment variables.');
+    console.error('Configuration error:', error);
+    throw error;
   }
 
   const ADMIN_FID = 212074; // Your admin FID
   const isAdmin = userFid === ADMIN_FID;
+  console.log('Is admin user:', isAdmin);
 
   try {
     if (isAdmin) {
+      console.log('Processing admin vote - allowing multiple votes');
       // Admin can vote multiple times - just insert a new vote
       const { error: insertError } = await supabase
         .from('votes')
@@ -227,13 +233,21 @@ export async function voteOnFarfession(farfessionId: number, userFid: number, vo
 
       if (insertError) {
         console.error('Error inserting admin vote:', insertError);
+        console.error('Insert error details:', {
+          code: insertError.code,
+          message: insertError.message,
+          details: insertError.details,
+          hint: insertError.hint
+        });
         throw new Error(`Error inserting vote: ${insertError.message}`);
       }
 
+      console.log('Admin vote inserted successfully');
       // Update the farfession counts
       await updateFarfessionCounts(farfessionId);
       return { action: 'created', newVote: voteType, isAdmin: true };
     } else {
+      console.log('Processing regular user vote - checking for existing vote');
       // Regular users - check for existing vote first
       const { data: existingVote, error: checkError } = await supabase
         .from('votes')
@@ -244,14 +258,25 @@ export async function voteOnFarfession(farfessionId: number, userFid: number, vo
 
       if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
         console.error('Error checking existing vote:', checkError);
+        console.error('Check error details:', {
+          code: checkError.code,
+          message: checkError.message,
+          details: checkError.details,
+          hint: checkError.hint
+        });
         throw new Error(`Error checking existing vote: ${checkError.message}`);
       }
+
+      console.log('Existing vote check result:', existingVote);
 
       if (existingVote) {
         // User has already voted
         if (existingVote.vote_type === voteType) {
-          throw new Error(`You have already ${voteType}d this farfession`);
+          const error = new Error(`You have already ${voteType}d this farfession`);
+          console.log('Duplicate vote attempt:', error.message);
+          throw error;
         } else {
+          console.log('User changing vote from', existingVote.vote_type, 'to', voteType);
           // User wants to change their vote
           const { error: updateError } = await supabase
             .from('votes')
@@ -260,14 +285,22 @@ export async function voteOnFarfession(farfessionId: number, userFid: number, vo
 
           if (updateError) {
             console.error('Error updating vote:', updateError);
+            console.error('Update error details:', {
+              code: updateError.code,
+              message: updateError.message,
+              details: updateError.details,
+              hint: updateError.hint
+            });
             throw new Error(`Error updating vote: ${updateError.message}`);
           }
 
+          console.log('Vote updated successfully');
           // Update the farfession counts
           await updateFarfessionCounts(farfessionId);
           return { action: 'updated', previousVote: existingVote.vote_type, newVote: voteType };
         }
       } else {
+        console.log('User has not voted yet, creating new vote');
         // User hasn't voted yet, create new vote
         const { error: insertError } = await supabase
           .from('votes')
@@ -279,9 +312,16 @@ export async function voteOnFarfession(farfessionId: number, userFid: number, vo
 
         if (insertError) {
           console.error('Error inserting vote:', insertError);
+          console.error('Insert error details:', {
+            code: insertError.code,
+            message: insertError.message,
+            details: insertError.details,
+            hint: insertError.hint
+          });
           throw new Error(`Error inserting vote: ${insertError.message}`);
         }
 
+        console.log('New vote inserted successfully');
         // Update the farfession counts
         await updateFarfessionCounts(farfessionId);
         return { action: 'created', newVote: voteType };
@@ -289,48 +329,89 @@ export async function voteOnFarfession(farfessionId: number, userFid: number, vo
     }
   } catch (error) {
     console.error('Vote farfession error:', error);
+    if (error instanceof Error) {
+      console.error('Error stack:', error.stack);
+    }
     throw error;
   }
 }
 
 // Function to update farfession like/dislike counts based on votes
 async function updateFarfessionCounts(farfessionId: number) {
-  // Count likes and dislikes from votes table
-  const { data: likesData, error: likesError } = await supabase
-    .from('votes')
-    .select('id')
-    .eq('farfession_id', farfessionId)
-    .eq('vote_type', 'like');
+  console.log('=== Updating Farfession Counts ===');
+  console.log('Farfession ID:', farfessionId);
+  
+  try {
+    // Count likes and dislikes from votes table
+    console.log('Counting likes...');
+    const { data: likesData, error: likesError } = await supabase
+      .from('votes')
+      .select('id')
+      .eq('farfession_id', farfessionId)
+      .eq('vote_type', 'like');
 
-  const { data: dislikesData, error: dislikesError } = await supabase
-    .from('votes')
-    .select('id')
-    .eq('farfession_id', farfessionId)
-    .eq('vote_type', 'dislike');
+    console.log('Counting dislikes...');
+    const { data: dislikesData, error: dislikesError } = await supabase
+      .from('votes')
+      .select('id')
+      .eq('farfession_id', farfessionId)
+      .eq('vote_type', 'dislike');
 
-  if (likesError || dislikesError) {
-    console.error('Error counting votes:', { likesError, dislikesError });
-    throw new Error('Error counting votes');
+    if (likesError || dislikesError) {
+      console.error('Error counting votes:', { likesError, dislikesError });
+      if (likesError) {
+        console.error('Likes error details:', {
+          code: likesError.code,
+          message: likesError.message,
+          details: likesError.details,
+          hint: likesError.hint
+        });
+      }
+      if (dislikesError) {
+        console.error('Dislikes error details:', {
+          code: dislikesError.code,
+          message: dislikesError.message,
+          details: dislikesError.details,
+          hint: dislikesError.hint
+        });
+      }
+      throw new Error('Error counting votes');
+    }
+
+    const likesCount = likesData?.length || 0;
+    const dislikesCount = dislikesData?.length || 0;
+    
+    console.log('Vote counts:', { likesCount, dislikesCount });
+
+    // Update the farfession with new counts
+    console.log('Updating farfession with new counts...');
+    const { error: updateError } = await supabase
+      .from('farfessions')
+      .update({
+        likes: likesCount,
+        dislikes: dislikesCount
+      })
+      .eq('id', farfessionId);
+
+    if (updateError) {
+      console.error('Error updating farfession counts:', updateError);
+      console.error('Update error details:', {
+        code: updateError.code,
+        message: updateError.message,
+        details: updateError.details,
+        hint: updateError.hint
+      });
+      throw new Error(`Error updating farfession counts: ${updateError.message}`);
+    }
+
+    console.log(`Successfully updated farfession ${farfessionId}: ${likesCount} likes, ${dislikesCount} dislikes`);
+  } catch (error) {
+    console.error('Error in updateFarfessionCounts:', error);
+    if (error instanceof Error) {
+      console.error('Error stack:', error.stack);
+    }
+    throw error;
   }
-
-  const likesCount = likesData?.length || 0;
-  const dislikesCount = dislikesData?.length || 0;
-
-  // Update the farfession with new counts
-  const { error: updateError } = await supabase
-    .from('farfessions')
-    .update({
-      likes: likesCount,
-      dislikes: dislikesCount
-    })
-    .eq('id', farfessionId);
-
-  if (updateError) {
-    console.error('Error updating farfession counts:', updateError);
-    throw new Error(`Error updating farfession counts: ${updateError.message}`);
-  }
-
-  console.log(`Updated farfession ${farfessionId}: ${likesCount} likes, ${dislikesCount} dislikes`);
 }
 
 // Legacy functions - keeping for backward compatibility but updating to use new voting system
