@@ -5,8 +5,7 @@ config({ path: '.env.local' });
 
 async function postTopSubmissions(period: 'daily' | 'weekly' = 'daily') {
   try {
-    // Use production URL instead of localhost
-    const baseUrl = 'https://farfessions.vercel.app';
+    const baseUrl = process.env.NEXT_PUBLIC_URL || 'http://localhost:3000';
     
     const response = await fetch(`${baseUrl}/api/post-top-submissions`, {
       method: 'POST',
