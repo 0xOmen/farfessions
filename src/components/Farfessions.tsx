@@ -515,16 +515,6 @@ export default function Farfessions(
         <FarfessionFeed />
 
         <div>
-          <h2 className="font-2xl font-bold">Add to client & notifications</h2>
-
-          <div className="mt-1 mb-2 text-sm">
-            Client fid {context?.client.clientFid},
-            {added ? " frame added to client," : " frame not added to client,"}
-            {notificationDetails
-              ? " notifications enabled"
-              : " notifications disabled"}
-          </div>
-
           <div className="mb-2">
             <div className="p-2 bg-[#7252B8] rounded-lg my-1">
               <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x- text-white">
