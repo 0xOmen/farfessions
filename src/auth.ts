@@ -86,23 +86,17 @@ export const authOptions: AuthOptions = {
           
           console.log('Verification response:', {
             success: verifyResponse.success,
-            fid: verifyResponse.fid,
-            isAuthAddress: verifyResponse.isAuthAddress || false
+            fid: verifyResponse.fid
           });
 
-          const { success, fid, isAuthAddress } = verifyResponse;
+          const { success, fid } = verifyResponse;
 
           if (!success) {
             console.error('Sign-in verification failed');
             return null;
           }
 
-          // Log whether this was an auth address or custody address sign-in
-          if (isAuthAddress) {
-            console.log(`User ${fid} signed in with auth address`);
-          } else {
-            console.log(`User ${fid} signed in with custody address`);
-          }
+          console.log(`User ${fid} signed in successfully`);
 
           return {
             id: fid.toString(),
