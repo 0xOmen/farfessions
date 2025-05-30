@@ -66,6 +66,10 @@ export default function Farfessions(
   const [isPaymentPending, setIsPaymentPending] = useState(false);
   const [paymentTxHash, setPaymentTxHash] = useState<string | null>(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [submissionSuccess, setSubmissionSuccess] = useState<string | null>(
+    null
+  );
+  const [feedKey, setFeedKey] = useState(0); // Key to force feed refresh
 
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
@@ -251,7 +255,7 @@ export default function Farfessions(
 
     setIsSubmitting(true);
     try {
-      await submitFarfession(farfession, userFid);
+      const result = await submitFarfession(farfession, userFid);
       setFarfession(""); // Clear the input after submission
 
       // Update daily submission status
@@ -260,7 +264,14 @@ export default function Farfessions(
         setCanSubmitToday(false); // Regular users can't submit again today
       }
 
-      alert("Your Farfession has been submitted!"); // Using alert since toast might not be installed
+      // Show success message
+      setSubmissionSuccess(
+        "✅ Your Farfession has been submitted successfully!"
+      );
+      setFeedKey(Date.now()); // Refresh feed to show new submission
+
+      // Clear success message after 5 seconds
+      setTimeout(() => setSubmissionSuccess(null), 5000);
     } catch (error) {
       console.error("Error submitting farfession:", error);
 
@@ -379,7 +390,10 @@ export default function Farfessions(
 
       setFarfession(""); // Clear the input
       setPaymentTxHash(null);
-      alert(`Your farfession has been posted! Cast hash: ${result.castHash}`);
+      setSubmissionSuccess(
+        "Your Farfession has been posted! Cast hash: " + result.castHash
+      );
+      setFeedKey(Date.now()); // Refresh feed
     } catch (error) {
       console.error("Error processing payment:", error);
       alert("Payment confirmed but posting failed. Please contact support.");
@@ -431,6 +445,13 @@ export default function Farfessions(
                   )}
                 </span>
               ) : null}
+            </div>
+          )}
+
+          {/* Success message */}
+          {submissionSuccess && (
+            <div className="mb-2 p-2 bg-green-600 text-white rounded-md text-sm font-semibold">
+              {submissionSuccess}
             </div>
           )}
 
@@ -512,7 +533,7 @@ export default function Farfessions(
           )}
         </div>
 
-        <FarfessionFeed />
+        <FarfessionFeed key={feedKey} />
 
         <div>
           <div className="mb-2">

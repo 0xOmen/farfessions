@@ -54,10 +54,30 @@ export default function FarfessionFeed() {
         // Ignore anything older than a week
       });
 
-      // Sort both groups by likes (descending)
-      const sortedLast24Hours = last24Hours.sort((a, b) => b.likes - a.likes);
+      // Sort both groups: user's submissions first, then by likes (descending)
+      const sortedLast24Hours = last24Hours.sort((a, b) => {
+        // User's own submissions come first
+        const aIsUser = a.user_fid === userFid;
+        const bIsUser = b.user_fid === userFid;
 
-      const sortedLastWeek = lastWeek.sort((a, b) => b.likes - a.likes);
+        if (aIsUser && !bIsUser) return -1;
+        if (!aIsUser && bIsUser) return 1;
+
+        // If both are user's or both are not user's, sort by likes
+        return b.likes - a.likes;
+      });
+
+      const sortedLastWeek = lastWeek.sort((a, b) => {
+        // User's own submissions come first
+        const aIsUser = a.user_fid === userFid;
+        const bIsUser = b.user_fid === userFid;
+
+        if (aIsUser && !bIsUser) return -1;
+        if (!aIsUser && bIsUser) return 1;
+
+        // If both are user's or both are not user's, sort by likes
+        return b.likes - a.likes;
+      });
 
       // Combine: 24 hours first, then week
       const combinedFarfessions = [...sortedLast24Hours, ...sortedLastWeek];
@@ -221,6 +241,7 @@ export default function FarfessionFeed() {
         const userFid = context?.user?.fid;
         const ADMIN_FID = 212074;
         const isAdmin = userFid === ADMIN_FID;
+        const isUserSubmission = farfession.user_fid === userFid;
 
         // Check if this is the first item from the "last week" section
         const submissionDate = new Date(farfession.created_at);
@@ -248,7 +269,20 @@ export default function FarfessionFeed() {
                 </div>
               </div>
             )}
-            <div className="p-4 bg-[#7252B8] rounded-lg shadow border border-white">
+            <div
+              className={`p-4 bg-[#7252B8] rounded-lg shadow ${
+                isUserSubmission
+                  ? "border-2 border-yellow-400"
+                  : "border border-white"
+              }`}
+            >
+              {/* Show user's own submission indicator */}
+              {isUserSubmission && (
+                <div className="mb-2 text-xs text-yellow-300 font-semibold">
+                  ⭐ Your Farfession
+                </div>
+              )}
+
               {/* Show hidden status for admin */}
               {isAdmin && farfession.is_hidden && (
                 <div className="mb-2 text-xs text-red-300 font-semibold">
