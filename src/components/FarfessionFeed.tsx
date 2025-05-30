@@ -118,6 +118,48 @@ export default function FarfessionFeed() {
   const handleLike = (id: number) => handleVote(id, "like");
   const handleDislike = (id: number) => handleVote(id, "dislike");
 
+  const handleModerate = async (id: number, hide: boolean) => {
+    const userFid = context?.user?.fid;
+    const ADMIN_FID = 212074;
+
+    if (!userFid || userFid !== ADMIN_FID) {
+      alert("Only admin can moderate farfessions.");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/moderate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          farfessionId: id,
+          adminFid: userFid,
+          hide,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to moderate farfession");
+      }
+
+      console.log(`Farfession ${hide ? "hidden" : "unhidden"} successfully`);
+
+      // Refresh the farfessions to reflect the change
+      await fetchFarfessions();
+    } catch (err) {
+      console.error(`Error moderating farfession:`, err);
+      alert(
+        `Failed to ${
+          hide ? "hide" : "unhide"
+        } the farfession. Please try again.`
+      );
+    }
+  };
+
   if (loading) {
     return <div className="text-center py-4">Loading farfessions...</div>;
   }
@@ -207,8 +249,14 @@ export default function FarfessionFeed() {
               </div>
             )}
             <div className="p-4 bg-[#7252B8] rounded-lg shadow border border-white">
+              {/* Show hidden status for admin */}
+              {isAdmin && farfession.is_hidden && (
+                <div className="mb-2 text-xs text-red-300 font-semibold">
+                  🚫 HIDDEN FROM PUBLIC
+                </div>
+              )}
               <p className="mb-3">{farfession.text}</p>
-              <div className="flex gap-4">
+              <div className="flex gap-4 flex-wrap">
                 <button
                   onClick={() => handleLike(farfession.id)}
                   className={`flex items-center gap-1 text-sm hover:text-white px-2 py-1 rounded ${
@@ -233,6 +281,27 @@ export default function FarfessionFeed() {
                   👎 {farfession.dislikes}
                   {isAdmin && <span className="text-xs ml-1">(Admin)</span>}
                 </button>
+
+                {/* Admin moderation button */}
+                {isAdmin && (
+                  <button
+                    onClick={() =>
+                      handleModerate(farfession.id, !farfession.is_hidden)
+                    }
+                    className={`flex items-center gap-1 text-xs px-2 py-1 rounded font-semibold ${
+                      farfession.is_hidden
+                        ? "bg-green-600 hover:bg-green-700 text-white"
+                        : "bg-red-600 hover:bg-red-700 text-white"
+                    }`}
+                    title={
+                      farfession.is_hidden
+                        ? "Unhide from public"
+                        : "Hide from public"
+                    }
+                  >
+                    {farfession.is_hidden ? "👁️ Unhide" : "🚫 Hide"}
+                  </button>
+                )}
               </div>
             </div>
           </div>

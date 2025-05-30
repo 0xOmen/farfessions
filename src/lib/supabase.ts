@@ -39,6 +39,9 @@ export type Farfession = {
   created_at: string;
   likes: number;
   dislikes: number;
+  is_hidden: boolean;
+  hidden_by_fid: number | null;
+  hidden_at: string | null;
 };
 
 export type Vote = {
@@ -163,9 +166,20 @@ export async function getFarfessions() {
 
 // Function to get farfessions with user vote status
 export async function getFarfessionsWithUserVotes(userFid?: number) {
-  const { data: farfessions, error: farfessionsError } = await supabase
+  const ADMIN_FID = 212074;
+  const isAdmin = userFid === ADMIN_FID;
+
+  // Build query - admin sees all, others only see non-hidden
+  let query = supabase
     .from('farfessions')
-    .select('*')
+    .select('*');
+
+  // Non-admin users should not see hidden farfessions
+  if (!isAdmin) {
+    query = query.eq('is_hidden', false);
+  }
+
+  const { data: farfessions, error: farfessionsError } = await query
     .order('created_at', { ascending: false });
 
   if (farfessionsError) {
@@ -429,4 +443,55 @@ export async function dislikeFarfession(id: number, userFid?: number) {
     throw new Error('User FID is required to vote');
   }
   return voteOnFarfession(id, userFid, 'dislike');
+}
+
+// Function to hide/unhide a farfession (admin only)
+export async function moderateFarfession(farfessionId: number, adminFid: number, hide: boolean) {
+  console.log('=== Moderating Farfession ===');
+  console.log('Farfession ID:', farfessionId);
+  console.log('Admin FID:', adminFid);
+  console.log('Action:', hide ? 'hide' : 'unhide');
+
+  const ADMIN_FID = 212074;
+  
+  // Check if user is admin
+  if (adminFid !== ADMIN_FID) {
+    throw new Error('Only admin can moderate farfessions');
+  }
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Supabase is not configured. Please check your environment variables.');
+  }
+
+  try {
+    const updateData: any = {
+      is_hidden: hide
+    };
+
+    if (hide) {
+      // If hiding, record who hid it and when
+      updateData.hidden_by_fid = adminFid;
+      updateData.hidden_at = new Date().toISOString();
+    } else {
+      // If unhiding, clear the moderation fields
+      updateData.hidden_by_fid = null;
+      updateData.hidden_at = null;
+    }
+
+    const { error } = await supabase
+      .from('farfessions')
+      .update(updateData)
+      .eq('id', farfessionId);
+
+    if (error) {
+      console.error('Error moderating farfession:', error);
+      throw new Error(`Error moderating farfession: ${error.message}`);
+    }
+
+    console.log(`Farfession ${farfessionId} ${hide ? 'hidden' : 'unhidden'} successfully`);
+    return { success: true, action: hide ? 'hidden' : 'unhidden' };
+  } catch (error) {
+    console.error('Moderation error:', error);
+    throw error;
+  }
 }
