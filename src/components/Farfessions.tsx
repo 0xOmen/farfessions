@@ -443,14 +443,28 @@ export default function Farfessions(
         }),
       });
 
-      const result = await response.json();
-
       if (!response.ok) {
+        const result = await response.json();
         throw new Error(result.error || "Failed to generate image");
       }
 
+      // The response is now the image file itself
+      const blob = await response.blob();
+      const today = new Date().toISOString().split("T")[0];
+      const filename = `daily-farfession-${today}.png`;
+
+      // Create a download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
       setImageGenerationResult(
-        `✅ Daily image generated successfully! Saved as: ${result.filename}`
+        `✅ Daily image generated and downloaded successfully! File: ${filename}`
       );
 
       // Clear success message after 10 seconds
@@ -614,7 +628,7 @@ export default function Farfessions(
                 >
                   {isGeneratingImage
                     ? "Generating..."
-                    : "📸 Generate Daily Top Image"}
+                    : "📸 Download Daily Top Image"}
                 </Button>
               </div>
 
