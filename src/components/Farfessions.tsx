@@ -453,24 +453,55 @@ export default function Farfessions(
       const today = new Date().toISOString().split("T")[0];
       const filename = `daily-farfession-${today}.png`;
 
-      // Create a download link
+      // Create a blob URL and open in new tab instead of forcing download
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
 
-      setImageGenerationResult(
-        `✅ Daily image generated and downloaded successfully! File: ${filename}`
-      );
+      // Try to open in new tab first
+      const newWindow = window.open(url, "_blank");
 
-      // Clear success message after 10 seconds
+      if (newWindow) {
+        // If new tab opened successfully, clean up after a delay
+        setTimeout(() => {
+          window.URL.revokeObjectURL(url);
+        }, 5000);
+
+        setImageGenerationResult(
+          `✅ Daily image generated! Opened in new tab. Right-click to save as: ${filename}`
+        );
+      } else {
+        // Fallback: try to create download link if new tab is blocked
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        a.style.display = "none";
+        document.body.appendChild(a);
+
+        // Use click() with a try-catch in case it's also blocked
+        try {
+          a.click();
+          setImageGenerationResult(
+            `✅ Daily image downloaded successfully! File: ${filename}`
+          );
+        } catch (downloadError) {
+          // If both methods fail, provide the blob URL for manual access
+          setImageGenerationResult(
+            `✅ Image generated! Copy this URL to access: ${url.substring(
+              0,
+              50
+            )}...`
+          );
+        }
+
+        document.body.removeChild(a);
+        setTimeout(() => {
+          window.URL.revokeObjectURL(url);
+        }, 30000); // Keep URL alive longer for manual access
+      }
+
+      // Clear success message after 15 seconds
       setTimeout(() => {
         setImageGenerationResult(null);
-      }, 10000);
+      }, 15000);
     } catch (error) {
       console.error("Error generating daily image:", error);
       setImageGenerationResult(
@@ -628,7 +659,7 @@ export default function Farfessions(
                 >
                   {isGeneratingImage
                     ? "Generating..."
-                    : "📸 Download Daily Top Image"}
+                    : "📸 Generate Daily Top Image"}
                 </Button>
               </div>
 
