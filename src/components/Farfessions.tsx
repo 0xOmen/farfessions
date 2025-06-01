@@ -258,20 +258,22 @@ export default function Farfessions(
       const result = await submitFarfession(farfession, userFid);
       setFarfession(""); // Clear the input after submission
 
-      // Update daily submission status
-      const ADMIN_FID = 212074;
-      if (userFid !== ADMIN_FID) {
-        setCanSubmitToday(false); // Regular users can't submit again today
-      }
-
       // Show success message
       setSubmissionSuccess(
         "✅ Your Farfession has been submitted successfully!"
       );
       setFeedKey(Date.now()); // Refresh feed to show new submission
 
-      // Clear success message after 5 seconds
-      setTimeout(() => setSubmissionSuccess(null), 5000);
+      // Clear success message and update daily limit after 5 seconds
+      setTimeout(() => {
+        setSubmissionSuccess(null);
+
+        // Update daily submission status after success message disappears
+        const ADMIN_FID = 212074;
+        if (userFid !== ADMIN_FID) {
+          setCanSubmitToday(false); // Regular users can't submit again today
+        }
+      }, 5000);
     } catch (error) {
       console.error("Error submitting farfession:", error);
 
@@ -394,6 +396,18 @@ export default function Farfessions(
         "Your Farfession has been posted! Cast hash: " + result.castHash
       );
       setFeedKey(Date.now()); // Refresh feed
+
+      // Clear success message and update daily limit after 5 seconds
+      setTimeout(() => {
+        setSubmissionSuccess(null);
+
+        // Update daily submission status after success message disappears
+        const ADMIN_FID = 212074;
+        const userFid = context?.user?.fid;
+        if (userFid && userFid !== ADMIN_FID) {
+          setCanSubmitToday(false); // Regular users can't submit again today
+        }
+      }, 5000);
     } catch (error) {
       console.error("Error processing payment:", error);
       alert("Payment confirmed but posting failed. Please contact support.");
