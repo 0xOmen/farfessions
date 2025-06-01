@@ -70,6 +70,10 @@ export default function Farfessions(
     null
   );
   const [feedKey, setFeedKey] = useState(0); // Key to force feed refresh
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [imageGenerationResult, setImageGenerationResult] = useState<
+    string | null
+  >(null);
 
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
@@ -416,6 +420,58 @@ export default function Farfessions(
     }
   };
 
+  const handleGenerateDailyImage = async () => {
+    const userFid = context?.user?.fid;
+    const ADMIN_FID = 212074;
+
+    if (userFid !== ADMIN_FID) {
+      alert("Only admin can generate daily images");
+      return;
+    }
+
+    setIsGeneratingImage(true);
+    setImageGenerationResult(null);
+
+    try {
+      const response = await fetch("/api/save-daily-image", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          adminFid: userFid,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to generate image");
+      }
+
+      setImageGenerationResult(
+        `✅ Daily image generated successfully! Saved as: ${result.filename}`
+      );
+
+      // Clear success message after 10 seconds
+      setTimeout(() => {
+        setImageGenerationResult(null);
+      }, 10000);
+    } catch (error) {
+      console.error("Error generating daily image:", error);
+      setImageGenerationResult(
+        `❌ Error: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
+
+      // Clear error message after 10 seconds
+      setTimeout(() => {
+        setImageGenerationResult(null);
+      }, 10000);
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  };
+
   if (!isSDKLoaded) {
     return <div>Loading...</div>;
   }
@@ -543,6 +599,37 @@ export default function Farfessions(
             <div className="mt-1 text-xs text-green-400">
               Payment sent!{" "}
               {isPaymentConfirming ? "Confirming..." : "Confirmed ✓"}
+            </div>
+          )}
+
+          {/* Admin Daily Image Generation */}
+          {context?.user?.fid === 212074 && (
+            <div className="mt-2 pt-2 border-t border-gray-600">
+              <div className="mb-1">
+                <Button
+                  className="w-full text-sm"
+                  onClick={handleGenerateDailyImage}
+                  disabled={isGeneratingImage}
+                  isLoading={isGeneratingImage}
+                >
+                  {isGeneratingImage
+                    ? "Generating..."
+                    : "📸 Generate Daily Top Image"}
+                </Button>
+              </div>
+
+              {/* Image generation result */}
+              {imageGenerationResult && (
+                <div
+                  className={`mt-1 p-2 rounded-md text-xs font-semibold ${
+                    imageGenerationResult.startsWith("✅")
+                      ? "bg-green-600 text-white"
+                      : "bg-red-600 text-white"
+                  }`}
+                >
+                  {imageGenerationResult}
+                </div>
+              )}
             </div>
           )}
         </div>
