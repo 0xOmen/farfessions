@@ -5,6 +5,33 @@ import React from 'react';
 
 export const runtime = 'edge';
 
+// Function to calculate optimal font size based on text length
+function calculateFontSize(textLength: number): { fontSize: number; lineHeight: number } {
+  // Base font size for short text
+  let fontSize = 48;
+  let lineHeight = 1.4;
+  
+  // Adjust font size based on text length
+  if (textLength > 800) {
+    fontSize = 24;
+    lineHeight = 1.2;
+  } else if (textLength > 600) {
+    fontSize = 28;
+    lineHeight = 1.25;
+  } else if (textLength > 400) {
+    fontSize = 32;
+    lineHeight = 1.3;
+  } else if (textLength > 200) {
+    fontSize = 36;
+    lineHeight = 1.35;
+  } else if (textLength > 100) {
+    fontSize = 42;
+    lineHeight = 1.4;
+  }
+  
+  return { fontSize, lineHeight };
+}
+
 export async function GET(request: NextRequest) {
   try {
     console.log('🎨 Starting daily image generation...');
@@ -54,6 +81,10 @@ export async function GET(request: NextRequest) {
     const topSubmission = last24Hours.sort((a, b) => b.likes - a.likes)[0];
     console.log(`🏆 Top submission: ${topSubmission.likes} likes, text: "${topSubmission.text.substring(0, 50)}..."`);
 
+    // Calculate optimal font size based on text length
+    const { fontSize, lineHeight } = calculateFontSize(topSubmission.text.length);
+    console.log(`📏 Text length: ${topSubmission.text.length}, using fontSize: ${fontSize}px, lineHeight: ${lineHeight}`);
+
     console.log('🖼️ Generating image...');
     // Generate the image
     return new ImageResponse(
@@ -68,7 +99,7 @@ export async function GET(request: NextRequest) {
             alignItems: 'center',
             justifyContent: 'center',
             backgroundColor: '#8A63D2',
-            padding: '60px',
+            padding: '40px',
           },
         },
         React.createElement(
@@ -80,19 +111,23 @@ export async function GET(request: NextRequest) {
               alignItems: 'center',
               justifyContent: 'center',
               textAlign: 'center',
-              maxWidth: '800px',
+              maxWidth: '1000px',
+              width: '100%',
             },
           },
           React.createElement(
             'div',
             {
               style: {
-                fontSize: '48px',
+                fontSize: `${fontSize}px`,
                 fontWeight: 'normal',
                 color: 'white',
-                lineHeight: '1.4',
-                marginBottom: '40px',
+                lineHeight: lineHeight.toString(),
+                marginBottom: fontSize > 32 ? '40px' : '20px',
                 fontFamily: 'system-ui, -apple-system, sans-serif',
+                wordWrap: 'break-word',
+                hyphens: 'auto',
+                maxWidth: '100%',
               },
             },
             `"${topSubmission.text}"`
@@ -101,7 +136,7 @@ export async function GET(request: NextRequest) {
             'div',
             {
               style: {
-                fontSize: '32px',
+                fontSize: Math.max(24, Math.floor(fontSize * 0.67)) + 'px',
                 color: 'white',
                 fontStyle: 'italic',
                 fontFamily: 'system-ui, -apple-system, sans-serif',
