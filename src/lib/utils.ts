@@ -111,7 +111,7 @@ export async function getFarcasterMetadata(): Promise<FrameManifest> {
     frame: {
       version: "1",
       name: APP_NAME ?? "Farfessions",
-      subtitle: "🤫 Spill the tea",
+      subtitle: "Spill the tea",
       iconUrl: APP_ICON_URL,
       homeUrl: APP_URL,
       imageUrl: APP_OG_IMAGE_URL,
